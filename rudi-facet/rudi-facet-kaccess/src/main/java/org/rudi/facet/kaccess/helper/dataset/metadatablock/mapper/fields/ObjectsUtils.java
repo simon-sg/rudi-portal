@@ -1,8 +1,8 @@
 package org.rudi.facet.kaccess.helper.dataset.metadatablock.mapper.fields;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -11,7 +11,7 @@ import org.apache.commons.lang3.NotImplementedException;
 
 class ObjectsUtils {
 
-	private static final Map<Class<?>, Object> EMPTY_INSTANCES = new HashMap<>();
+	private static final Map<Class<?>, Object> EMPTY_INSTANCES = new ConcurrentHashMap<>();
 
 	private ObjectsUtils() {
 	}
