@@ -48,8 +48,11 @@ public class ConnectorValidator {
 				return integrationRequestsErrors;
 			}
 
-			// Pas de champs obligatoires manquants, validation de ceux renseignés
-			for (ConnectorConnectorParametersInner parameterInner : connector.getConnectorParameters()) {
+			// Pas de champs obligatoires manquants, validation de ceux renseignés.
+			// connector_parameters est optionnel dans le standard RUDI : tolérer null (emptyIfNull),
+			// sinon NPE -> ERR-500 générique pour une fiche pourtant légale.
+			for (ConnectorConnectorParametersInner parameterInner : CollectionUtils
+					.emptyIfNull(connector.getConnectorParameters())) {
 				connectorParameterValidators.stream().filter(element -> element.accept(parameterInner)).findFirst()
 						.ifPresent(validator -> integrationRequestsErrors
 								.addAll(validator.validate(parameterInner, connector.getInterfaceContract())));
