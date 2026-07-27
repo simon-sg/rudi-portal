@@ -4,7 +4,7 @@ import {HttpResponse} from '@angular/common/http';
 import {Component, Input, OnInit} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/card';
-import {MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle} from '@angular/material/expansion';
+import {MatExpansionPanel, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle} from '@angular/material/expansion';
 import {MatError} from '@angular/material/form-field';
 import {MatIcon} from '@angular/material/icon';
 import {LanguageService} from '@core/i18n/language.service';
@@ -60,7 +60,7 @@ import SelfdataCatagoriesEnum = SelfdataContent.SelfdataCategoriesEnum;
     templateUrl: './data-set-infos.component.html',
     styleUrls: ['./data-set-infos.component.scss'],
     imports: [MatCardHeader, MatCardTitle, MatCardContent, LoaderComponent, MatExpansionPanel,
-        MatExpansionPanelHeader, NgClass, MatExpansionPanelTitle,
+        MatExpansionPanelHeader, NgClass, MatExpansionPanelTitle, MatExpansionPanelDescription,
         BooleanDataBlockComponent, MatError, MatIcon, MatButton,
         MapComponent, OrganizationLogoComponent, ContactButtonComponent,
         AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe, ReplaceIfNullPipe]
