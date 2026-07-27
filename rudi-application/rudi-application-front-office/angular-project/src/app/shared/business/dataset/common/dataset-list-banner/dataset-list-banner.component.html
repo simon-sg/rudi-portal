@@ -30,6 +30,20 @@
     </app-filter-menu>
 
     <app-filter-menu
+        #fileTypesMenu
+        (closed)="fileTypesForm.revert()"
+        [counter$]="fileTypesForm.counter$"
+        buttonTextKey="filterBox.typeFichier">
+        <app-file-types-filter-form
+            #fileTypesForm
+            (selectedItemsChange)="selectedFileTypeItemsChange.emit($event)"
+            (submitFormEvent)="fileTypesMenu.close()"
+            [values]="fileTypes"
+            ulClass="ps-0">
+        </app-file-types-filter-form>
+    </app-filter-menu>
+
+    <app-filter-menu
         #datesMenu
         (closed)="datesForm.revert()"
         [counter$]="datesForm.counter$"

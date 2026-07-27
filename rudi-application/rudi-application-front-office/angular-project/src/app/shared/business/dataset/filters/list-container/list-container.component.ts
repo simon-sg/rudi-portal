@@ -7,7 +7,8 @@ import {Router} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {FiltersService} from '@core/services/filters.service';
 import {OrderValue} from '@core/services/filters/order-filter';
-import {KonsultMetierService, MAX_RESULTS_PER_PAGE} from '@core/services/konsult-metier.service';
+import {FileTypeCount, KonsultMetierService, MAX_RESULTS_PER_PAGE} from '@core/services/konsult-metier.service';
+import {LogService} from '@core/services/log.service';
 import {SidenavOpeningsService} from '@core/services/sidenav-openings.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
@@ -79,10 +80,12 @@ export class ListContainerComponent implements OnInit, OnDestroy {
     metadataListTotal: number;
     private filtersServiceSubscription?: Subscription;
     producerNames: string[];
+    fileTypes: FileTypeCount[];
     private readonly isDestroyed$: Subject<void> = new Subject<void>();
     selectedDatesItems: Item[] = [];
     selectedThemeItems: Item[] = [];
     selectedProducerItems: Item[] = [];
+    selectedFileTypeItems: Item[] = [];
     selectedAccessStatusItems: AccessStatusFilterItem[] = [];
 
 
@@ -94,6 +97,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
         private readonly breakpointObserver: BreakpointObserverService,
         private readonly sidenavOpeningsService: SidenavOpeningsService,
         private readonly themeCacheService: ThemeCacheService,
+        private readonly logService: LogService,
     ) {
         this.searche$ = this.filtersService.searchFilter.value$;
     }
@@ -103,6 +107,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
             this.selectedDatesItems?.length > 0 ||
             this.selectedAccessStatusItems?.length > 0 ||
             this.selectedProducerItems?.length > 0 ||
+            this.selectedFileTypeItems?.length > 0 ||
             this.selectedThemeItems?.length > 0
         );
     }
@@ -131,6 +136,10 @@ export class ListContainerComponent implements OnInit, OnDestroy {
         this.konsultMetierService.getProducerNames().subscribe(
             producerNames => this.producerNames = producerNames
         );
+        this.konsultMetierService.getAvailableFileTypes().subscribe({
+            next: fileTypes => this.fileTypes = fileTypes,
+            error: error => this.logService.error('getAvailableFileTypes failed', error.message)
+        });
         this.filtersServiceSubscription = this.filtersService.searchFilter.value$.subscribe();
         this.selectedAccessStatusItems.push(this.accessStatusForcedValue);
     }
