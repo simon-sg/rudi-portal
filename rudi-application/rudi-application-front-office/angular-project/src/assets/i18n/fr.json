@@ -352,6 +352,7 @@
         "telechargerFichier": "Télécharger le fichier",
         "telechargement": "téléchargement",
         "fichier": "Fichier",
+        "fichierAAfficher": "Fichier à afficher",
         "streaming": "Streaming",
         "ms": "ms",
         "emailError": "Cette information est obligatoire. Assurez-vous qu'elle respecte ce format : exemple@domaine.com",
@@ -454,6 +455,7 @@
         "toutEffacer": "Effacer tout",
         "thematique": "Thématique",
         "producteur": "Producteur",
+        "typeFichier": "Type de fichier",
         "couvertureTemporelle": "Couverture temporelle",
         "restrictedAccess": {
             "statut": "Statut",
@@ -754,7 +756,8 @@
     },
     "availableFormats": {
         "formatsDisponibles": "Formats disponibles :",
-        "telecharger": "Télécharger"
+        "telecharger": "Télécharger",
+        "telechargerZip": "Télécharger (.zip)"
     },
     "datasetDate": {
         "debutDePeriode": "Début de période",

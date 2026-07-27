@@ -60,7 +60,7 @@ import SelfdataCatagoriesEnum = SelfdataContent.SelfdataCategoriesEnum;
     templateUrl: './data-set-infos.component.html',
     styleUrls: ['./data-set-infos.component.scss'],
     imports: [MatCardHeader, MatCardTitle, MatCardContent, LoaderComponent, MatExpansionPanel,
-        MatExpansionPanelHeader, NgClass, MatExpansionPanelTitle,
+        MatExpansionPanelHeader, NgClass, MatExpansionPanelTitle, MatExpansionPanelDescription,
         BooleanDataBlockComponent, MatError, MatIcon, MatButton,
         MapComponent, OrganizationLogoComponent, ContactButtonComponent,
         AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe, ReplaceIfNullPipe]
@@ -153,16 +153,14 @@ export class DataSetInfosComponent implements OnInit {
     }
 
     /**
-     * Tri permettant d'afficher les media file avant les media series
+     * Tri permettant d'afficher les media file avant les media series, puis les media d'un même
+     * type triés par nom (media_name) pour regrouper visuellement les fichiers apparentés.
      */
     mediasSortedFunction(media1: Media, media2: Media): number {
-        if (media1.media_type === media2.media_type) {
-            return 0;
-        } else if (media1.media_type === MediaTypeEnum.File) {
-            return -1;
-        } else {
-            return 1;
+        if (media1.media_type !== media2.media_type) {
+            return media1.media_type === MediaTypeEnum.File ? -1 : 1;
         }
+        return (media1.media_name ?? '').localeCompare(media2.media_name ?? '');
     }
 
     /**
@@ -177,6 +175,24 @@ export class DataSetInfosComponent implements OnInit {
      */
     getMediaFileExtension(media: Media): string {
         return this.konsultMetierService.getMediaFileExtension(media);
+    }
+
+    /**
+     * Fonction permettant de retourner l'icône Material associée au format du fichier
+     */
+    getMediaFileIcon(media: Media): string {
+        const ICONS_PAR_EXTENSION: Record<string, string> = {
+            csv: 'table_chart',
+            tsv: 'table_chart',
+            json: 'data_object',
+            geojson: 'map',
+            pdf: 'picture_as_pdf',
+            xlsx: 'grid_on',
+            xls: 'grid_on',
+            zip: 'folder_zip',
+        };
+        const extension = this.getMediaFileExtension(media)?.toLowerCase();
+        return ICONS_PAR_EXTENSION[extension] ?? 'description';
     }
 
     /**

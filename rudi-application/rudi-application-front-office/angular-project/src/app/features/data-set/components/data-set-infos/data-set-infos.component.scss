@@ -197,11 +197,20 @@
 }
 
 .rudi-mat-expansion-panel-source {
-    height: 40px;
+    // Material fixe la hauteur du header via --mat-expansion-header-collapsed/expanded-state-height
+    // (48px/64px) : sur un nom de fichier long qui passe sur 2 lignes (media_name), le contenu
+    // déborde du bloc au lieu de le faire grandir. `height: auto` + `min-height` laisse le bloc
+    // s'adapter, avec un padding vertical symétrique qui reste correct sur 1 comme sur 2 lignes.
+    height: auto !important;
+    min-height: 40px;
     border-radius: 6px;
     border: solid 1px var(--blocks-and-menus-outline);
     background-color: var(--banner-solid-color);
-    padding: 0 20px 3px 17px;
+    padding: 8px 20px 8px 17px;
+
+    &.mat-expanded {
+        height: auto !important;
+    }
 
     .mat-expansion-indicator:hover, .mat-expansion-indicator:focus, .mat-expansion-indicator.open {
         width: 30px;
@@ -224,6 +233,12 @@
     font-weight: 600;
     font-stretch: normal;
     font-style: normal;
+}
+
+.rudi-panel-source-icon {
+    margin-right: 8px;
+    vertical-align: middle;
+    flex-shrink: 0;
 }
 
 table th {

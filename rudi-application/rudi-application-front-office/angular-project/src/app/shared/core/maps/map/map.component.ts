@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, Input, OnInit} from '@angular/core';
+import {AfterViewInit, Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {MatMenu, MatMenuItem, MatMenuTrigger} from '@angular/material/menu';
@@ -44,7 +44,7 @@ import MediaTypeEnum = Media.MediaTypeEnum;
     styleUrls: ['./map.component.scss'],
     imports: [SearchAutocompleteComponent, MatButton, MatIcon, MatMenuTrigger, MatMenu, MatMenuItem, MapPopupComponent, TranslatePipe]
 })
-export class MapComponent implements AfterViewInit, OnInit {
+export class MapComponent implements AfterViewInit, OnInit, OnChanges {
 
     /**
      * Coordonnées du point de centrage de la carte en WGS84 (Rennes par défaut)
@@ -151,6 +151,21 @@ export class MapComponent implements AfterViewInit, OnInit {
     currentBaseLayer: BaseLayer;
 
     /**
+     * La couche de données du JDD actuellement affichée sur la carte (WMS/WMTS/WFS/GeoJSON), pour
+     * pouvoir la retirer proprement lors d'un changement de média sélectionné (voir ngOnChanges,
+     * removeCurrentMediaLayer).
+     */
+    mediaDataLayer: BaseLayer;
+
+    /**
+     * La couche actuellement interactive (cliquable pour la popup de feature). Mise à jour à chaque
+     * chargement de couche de données (voir handleLoadLayers). Le listener de clic unique (voir
+     * addFeatureInteraction, enregistré une seule fois dans initMap()) la consulte dynamiquement,
+     * pour rester valide après un changement de média sans empiler un nouveau listener à chaque fois.
+     */
+    interactiveMediaLayer: BaseLayer;
+
+    /**
      * L'extent de la géométrie du JDD (bounding box ou geometric distribution)
      */
     centeredExtent;
@@ -195,6 +210,21 @@ export class MapComponent implements AfterViewInit, OnInit {
         this.propertiesMetierService.getNumber('mapInfo.defaultZoom').subscribe(num => {
             this.configDefaultZoom = num;
         });
+    }
+
+    /**
+     * Réagit à un changement de média sélectionné (sélecteur de fichier de l'onglet Carte, voir
+     * MapTabComponent). Le tout premier changement (chargement initial) est ignoré : il est déjà
+     * géré par ngAfterViewInit. Si la carte n'est pas encore initialisée (this.map == null — cas
+     * rare d'une sélection changée avant la fin de l'initialisation asynchrone de la projection), on
+     * ne fait rien : ngAfterViewInit lira de toute façon la dernière valeur de this.media au moment
+     * où il s'exécutera (Angular affecte les @Input() avant tout hook de cycle de vie).
+     */
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes.media && !changes.media.firstChange && this.map != null) {
+            this.removeCurrentMediaLayer();
+            this.handleLoadLayers();
+        }
     }
 
     ngAfterViewInit(): void {
@@ -413,10 +443,26 @@ export class MapComponent implements AfterViewInit, OnInit {
         // Chargement des dépendances
         this.handleLoadLayers();
         this.handleMapEvents();
+        this.addFeatureInteraction();
 
         if (this.initExtent != null) {
             this.map.getView().fit(this.initExtent);
         }
+    }
+
+    /**
+     * Retire de la carte l'éventuelle couche de données actuellement affichée, et ferme la popup
+     * ouverte (qui pourrait référencer une feature de cette couche). Appelé avant de recharger la
+     * couche pour un nouveau média sélectionné (voir ngOnChanges).
+     * @private
+     */
+    private removeCurrentMediaLayer(): void {
+        if (this.mediaDataLayer != null) {
+            this.map.removeLayer(this.mediaDataLayer);
+            this.mediaDataLayer = null;
+        }
+        this.interactiveMediaLayer = null;
+        this.handleClosePopup();
     }
 
     private handleLoadLayers(): void {
@@ -429,20 +475,29 @@ export class MapComponent implements AfterViewInit, OnInit {
                 layer = this.mapLayerFunction.createWmtsDataLayer(this.metadata.global_id, this.media);
             } else if (this.media.connector.interface_contract === MAP_PROTOCOLS.WFS) {
                 layer = this.mapLayerFunction.createWfsDataLayer(this.metadata.global_id, this.media);
-                this.addFeatureInteraction(layer);
+                this.interactiveMediaLayer = layer;
             } else if (this.media.media_type === MediaTypeEnum.File) {
                 const mediaFile: MediaFile = this.media as MediaFile;
                 if (mediaFile.file_type === FileTypes.GEO_JSON) {
+                    const requestedMedia = this.media;
                     this.mapLayerFunction.createGeojsonDataLayer(this.media).subscribe({
                         next: (baseLayer: BaseLayer) => {
+                            // Le média a pu changer pendant le téléchargement (asynchrone) du geojson :
+                            // si l'utilisateur a re-sélectionné un autre fichier entre-temps, ce
+                            // résultat devenu obsolète est ignoré.
+                            if (this.media !== requestedMedia) {
+                                return;
+                            }
+                            this.mediaDataLayer = baseLayer;
                             this.map.getLayers().push(baseLayer);
-                            this.addFeatureInteraction(baseLayer);
+                            this.interactiveMediaLayer = baseLayer;
                         }
                     });
                 }
             }
 
             if (layer != null) {
+                this.mediaDataLayer = layer;
                 this.map.getLayers().push(layer);
             }
         }
@@ -585,17 +640,23 @@ export class MapComponent implements AfterViewInit, OnInit {
     }
 
     /**
-     * Ajout des interaction au clic sur une feature pour ajouter une popup
-     * @param vectorLayer le layer concerné par l'interaction
+     * Enregistre (une seule fois, voir l'appel dans initMap()) le listener de clic gérant la popup
+     * de feature. Consulte this.interactiveMediaLayer dynamiquement (mis à jour à chaque chargement
+     * de couche, voir handleLoadLayers) plutôt que de capturer une couche par fermeture : évite
+     * d'empiler un nouveau listener map.on('click', ...) à chaque changement de média sélectionné.
      */
-    addFeatureInteraction(vectorLayer: BaseLayer): void {
+    addFeatureInteraction(): void {
         this.map.on('click', (event) => {
+            if (this.interactiveMediaLayer == null) {
+                return;
+            }
+
             if (this.popupFeature) {
                 this.popupFeature.setStyle();
             }
 
             const feature = this.map.forEachFeatureAtPixel(event.pixel, (clickedFeature, clickedLayer) => {
-                    return clickedLayer === vectorLayer ? clickedFeature : null;
+                    return clickedLayer === this.interactiveMediaLayer ? clickedFeature : null;
                 }
             );
 

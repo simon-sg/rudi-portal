@@ -13,3 +13,18 @@
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
 }
+
+// Sélecteur de fichier au-dessus de la carte. Volontairement HORS de .map-header (bande bleue
+// décorative) : y loger un mat-form-field posait un problème de lisibilité récurrent (étiquette
+// flottante à cheval sur la bordure du champ, moitié sur fond blanc moitié sur fond bleu). Fond
+// clair standard de la carte, même traitement que le sélecteur de l'onglet Tableau
+// (spreadsheet-tab.component.scss :: .table-media-select).
+.map-media-select {
+    padding: 16px 16px 0;
+    margin-bottom: 20px;
+
+    mat-form-field {
+        width: 100%;
+        max-width: 420px;
+    }
+}

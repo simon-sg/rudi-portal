@@ -87,3 +87,12 @@
 .btn-outline {
     outline: none;
 }
+
+.table-media-select {
+    margin-bottom: 20px;
+
+    mat-form-field {
+        width: 100%;
+        max-width: 420px;
+    }
+}
