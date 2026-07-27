@@ -6,10 +6,11 @@ import {MatDivider} from '@angular/material/divider';
 import {MatIcon} from '@angular/material/icon';
 import {MatTooltip} from '@angular/material/tooltip';
 import {DomSanitizer, SafeHtml} from '@angular/platform-browser';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {LanguageService} from '@core/i18n/language.service';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {FiltersService} from '@core/services/filters.service';
+import {URIComponentCodec} from '@core/services/codecs/uri-component-codec';
 import {IconRegistryService} from '@core/services/icon-registry.service';
 import {TranslatePipe} from '@ngx-translate/core';
 import {ContactButtonComponent} from '@shared/business/contacts/contact-button/contact-button.component';
@@ -28,7 +29,7 @@ import MediaTypeEnum = Media.MediaTypeEnum;
     selector: 'app-dataset-informations',
     templateUrl: './dataset-informations.component.html',
     styleUrls: ['./dataset-informations.component.scss'],
-    imports: [LoaderComponent, MatCard, MatCardTitle, MatCardContent, MatButton, MatTooltip, MatIcon, DataSetInfosComponent, OrganizationLogoComponent, MatDivider, ContactButtonComponent, DatasetsInfosComponent, AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe]
+    imports: [LoaderComponent, MatCard, MatCardTitle, MatCardContent, MatButton, MatTooltip, MatIcon, DataSetInfosComponent, OrganizationLogoComponent, MatDivider, ContactButtonComponent, DatasetsInfosComponent, AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe, RouterLink]
 })
 export class DatasetInformationsComponent {
     @Input() mediaType = mediaType.Media.MediaTypeEnum;
@@ -60,6 +61,7 @@ export class DatasetInformationsComponent {
         private readonly languageService: LanguageService,
         private readonly filtersService: FiltersService,
         private readonly router: Router,
+        protected readonly uriComponentCodec: URIComponentCodec,
     ) {
         this.mediaSize = this.breakpointObserverService.getMediaSize();
         iconRegistryService.addAllSvgIcons(ALL_TYPES);

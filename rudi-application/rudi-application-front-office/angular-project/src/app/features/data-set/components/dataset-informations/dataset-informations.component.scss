@@ -51,6 +51,18 @@
         font-weight: 600;
     }
 
+    // Le lien vers la page organisation garde la mise en forme du texte d'origine (bloc, couleur
+    // héritée) ; seul le soulignement signale le survol (annule le bleu de la règle globale `a:hover`).
+    .producer-info .producer-link {
+        display: block;
+        color: inherit;
+
+        &:hover {
+            color: inherit;
+            text-decoration: underline;
+        }
+    }
+
 }
 
 /* informations sur le JDD */
