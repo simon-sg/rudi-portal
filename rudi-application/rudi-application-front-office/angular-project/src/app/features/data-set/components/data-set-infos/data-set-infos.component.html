@@ -348,7 +348,11 @@
           <mat-expansion-panel-header class="rudi-mat-expansion-panel-source" id="medias-table-header">
             @if (metaDataFunctions.isMediaTypeFile(media)) {
               <mat-panel-title class="rudi-panel-source-title">
-                {{'common.fichier'|translate}} ({{getMediaFileExtension(media)}})
+                @if (media.media_name) {
+                  {{'common.fichier'|translate}} "{{ media.media_name }}" ({{getMediaFileExtension(media)}})
+                } @else {
+                  {{'common.fichier'|translate}} ({{getMediaFileExtension(media)}})
+                }
               </mat-panel-title>
             }
             @if (metaDataFunctions.isMediaTypeSeries(media)) {
@@ -362,6 +366,11 @@
                 class="rudi-panel-source-title">
                 <span>{{'metaData.service'|translate}} {{getInterfaceContract(media)}}</span>
               </mat-panel-title>
+            }
+            @if (media.media_caption) {
+              <mat-panel-description class="rudi-panel-source-caption">
+                {{ media.media_caption }}
+              </mat-panel-description>
             }
           </mat-expansion-panel-header>
           <!--Media de type File -->
