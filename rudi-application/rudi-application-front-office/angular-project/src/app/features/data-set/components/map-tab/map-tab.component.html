@@ -3,7 +3,7 @@
   @if (!isMapLoading && !isErrorAccess) {
     <div class="map-header">
       @if (candidates && candidates.length > 1) {
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
           <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
             @for (candidate of candidates; track candidate) {
