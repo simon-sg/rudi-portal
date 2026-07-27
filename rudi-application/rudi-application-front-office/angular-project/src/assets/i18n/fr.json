@@ -754,7 +754,8 @@
     },
     "availableFormats": {
         "formatsDisponibles": "Formats disponibles :",
-        "telecharger": "Télécharger"
+        "telecharger": "Télécharger",
+        "telechargerZip": "Télécharger (.zip)"
     },
     "datasetDate": {
         "debutDePeriode": "Début de période",

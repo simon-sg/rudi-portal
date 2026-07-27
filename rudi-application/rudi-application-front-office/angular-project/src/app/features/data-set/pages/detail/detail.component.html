@@ -81,39 +81,34 @@
               </div>
               <mat-menu #formatMenu="matMenu" role="menu" yPosition="below">
                     <div (click)="$event.stopPropagation()" class="rudi-select-panel d-flex flex-column">
-                      <form [formGroup]="form">
-                        <div class="menu-radioGroup-scrollable">
-                          <h4 class="menu-libelle">{{ 'availableFormats.formatsDisponibles'|translate }}</h4>
-                          <mat-radio-group #radioGroup="matRadioGroup"
-                            (click)="$event.stopPropagation()"
-                            aria-label="Select an option"
-                            formControlName="options" class="d-flex flex-column">
-                            @for (item of downloadableMedias; track item; let i = $index) {
-                              <mat-radio-button
-                                [checked]="i === 0"
-                                [value]="item"
-                                class="mb-2">
-                                @if (item.media_name) {
-                                  {{ item.media_name }} ({{ getMediaFileExtension(item) }})
-                                } @else {
-                                  {{ getMediaFileExtension(item) }}
-                                }
-                              </mat-radio-button>
-                            }
-                          </mat-radio-group>
+                      <div class="menu-radioGroup-scrollable">
+                        <h4 class="menu-libelle">{{ 'availableFormats.formatsDisponibles'|translate }}</h4>
+                        <div (click)="$event.stopPropagation()" class="d-flex flex-column">
+                          @for (item of downloadableMedias; track item) {
+                            <mat-checkbox
+                              [checked]="isMediaSelected(item)"
+                              (change)="toggleMediaSelection(item, $event.checked)"
+                              class="mb-2">
+                              @if (item.media_name) {
+                                {{ item.media_name }} ({{ getMediaFileExtension(item) }})
+                              } @else {
+                                {{ getMediaFileExtension(item) }}
+                              }
+                            </mat-checkbox>
+                          }
                         </div>
-                        @if (!isSelfdata) {
-                          <button
-                            (click)="onDownloadFormat()"
-                            [ngClass]="{'btn-download-format':metadata.available_formats.length == null }"
-                            class="button menu-btn-download"
-                            mat-raised-button
-                            type="submit"
-                            >
-                            {{ 'availableFormats.telecharger'|translate }}
-                          </button>
-                        }
-                      </form>
+                      </div>
+                      @if (!isSelfdata) {
+                        <button
+                          (click)="onDownloadFormat()"
+                          [disabled]="selectedMedias.length === 0"
+                          [ngClass]="{'btn-download-format':metadata.available_formats.length == null }"
+                          class="button menu-btn-download"
+                          mat-raised-button
+                          type="button">
+                          {{ (selectedMedias.length > 1 ? 'availableFormats.telechargerZip' : 'availableFormats.telecharger') | translate }}
+                        </button>
+                      }
                     </div>
                   </mat-menu>
             </app-banner-button>
