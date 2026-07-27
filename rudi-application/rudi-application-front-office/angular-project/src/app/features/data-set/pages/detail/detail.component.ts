@@ -89,6 +89,14 @@ export class DetailComponent implements OnInit {
     mediaToDisplayTable: Media;
     mediaToDisplayMap: Media;
 
+    /**
+     * Liste des médias éligibles à l'affichage tabulaire (CSV/Excel), pour le sélecteur de fichier
+     * de l'onglet « Données tabulaires ». Construite une seule fois au chargement du JDD (voir
+     * buildTableMediaCandidates), pas dans le getter isSpreadsheetDisplayed (appelé à chaque cycle
+     * de détection de changements par le template : il ne doit pas avoir d'effet de bord).
+     */
+    tableMediaCandidates: MediaFile[] = [];
+
     private _metadata: Metadata | undefined;
     restrictedDatasetIcon = 'key_icon_88_secondary-color';
     selfDataIcon = 'self-data-icon';
@@ -175,16 +183,21 @@ export class DetailComponent implements OnInit {
     }
 
     get isSpreadsheetDisplayed(): boolean {
-        for (const item of this.metadata.available_formats) {
-            const objet: MediaFile = item as MediaFile;
-            if (objet.file_type === FileTypes.TEXT_CSV ||
-                objet.file_type === FileTypes.VND_MS_EXCEL) {
-                this.mediaToDisplayTable = item;
-                return true;
-            }
-        }
+        return this.tableMediaCandidates.length > 0;
+    }
 
-        return false;
+    /**
+     * Construit la liste des médias pouvant être affichés dans l'onglet « Données tabulaires »
+     * (CSV/Excel), et sélectionne par défaut le premier trouvé — comportement identique à l'ancien
+     * getter isSpreadsheetDisplayed, mais sans effet de bord au sein d'un getter.
+     * @private
+     */
+    private buildTableMediaCandidates(metadata: Metadata): void {
+        this.tableMediaCandidates = metadata.available_formats.filter((item: Media) => {
+            const objet: MediaFile = item as MediaFile;
+            return objet.file_type === FileTypes.TEXT_CSV || objet.file_type === FileTypes.VND_MS_EXCEL;
+        }) as MediaFile[];
+        this.mediaToDisplayTable = this.tableMediaCandidates[0];
     }
 
     get isMapDisplayed(): boolean {
@@ -242,6 +255,7 @@ export class DetailComponent implements OnInit {
                     this.metadata = metadata;
                     this.restrictedAccess = this.metadata?.access_condition?.confidentiality?.restricted_access;
                     this.handleMetadataProperties(this.metadata);
+                    this.buildTableMediaCandidates(this.metadata);
 
                     // L'item sélectionné est le premier type FILE de la liste des formats disponibles
                     const premierMediaFichier = this.metadata.available_formats.filter(f => f.media_type === 'FILE')[0];
