@@ -1,4 +1,22 @@
 <div>
+  @if (candidates && candidates.length > 1) {
+    <div class="table-media-select">
+      <mat-form-field appearance="outline">
+        <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
+        <mat-select [value]="selectedMedia" [disabled]="displayTableLoading" (selectionChange)="onMediaSelected($event)">
+          @for (candidate of candidates; track candidate) {
+            <mat-option [value]="candidate">
+              @if (candidate.media_name) {
+                {{ candidate.media_name }}
+              } @else {
+                {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
+              }
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  }
   <app-loader [allPage]="false" [isLight]="true" [noText]="true"
   [active]="displayTableLoading"></app-loader>
   @if (!displayTableLoading) {
