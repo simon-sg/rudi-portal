@@ -17,7 +17,13 @@
 
   <div class="header-ressource-container">
     <div class="header-ressource">
-      <div class="producer-name">{{organizationName}}</div>
+      @if (organizationId && organizationClickable) {
+        <a class="producer-name producer-link" [routerLink]="['/organization/detail', organizationId, uriComponentCodec.normalizeString(organizationName)]"
+          [attr.aria-label]="'organization.linkToPage' | translate: {name: organizationName}"
+          [attr.title]="'organization.linkToPage' | translate: {name: organizationName}">{{organizationName}}</a>
+      } @else {
+        <div class="producer-name">{{organizationName}}</div>
+      }
       <div class="resource-description d-flex mx-auto">
         <h1 class="blue-theme resource-title my-auto">
           @if (icon != null && icon !== '') {
