@@ -146,8 +146,15 @@
             <div class="info-prod-content">
               <div class="producer-info">
                 @if (metadata.producer.organization_name) {
-                  <span
-                  >{{metadata.producer.organization_name | uppercase}}</span>
+                  @if (metadata.producer.organization_id) {
+                    <a class="producer-link"
+                      [routerLink]="['/organization/detail', metadata.producer.organization_id, uriComponentCodec.normalizeString(metadata.producer.organization_name)]"
+                      [attr.aria-label]="'organization.linkToPage' | translate: {name: metadata.producer.organization_name}"
+                      [attr.title]="'organization.linkToPage' | translate: {name: metadata.producer.organization_name}"
+                    >{{metadata.producer.organization_name | uppercase}}</a>
+                  } @else {
+                    <span>{{metadata.producer.organization_name | uppercase}}</span>
+                  }
                 }
                 @if (metadata.producer.organization_address) {
                   <span
