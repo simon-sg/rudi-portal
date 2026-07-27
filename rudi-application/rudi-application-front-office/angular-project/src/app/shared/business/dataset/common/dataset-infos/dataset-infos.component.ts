@@ -2,10 +2,11 @@ import {NgClass} from '@angular/common';
 import {Component, Input} from '@angular/core';
 import {MatDivider} from '@angular/material/divider';
 import {MatIcon} from '@angular/material/icon';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {URIComponentCodec} from '@core/services/codecs/uri-component-codec';
 import {IconRegistryService} from '@core/services/icon-registry.service';
+import {TranslatePipe} from '@ngx-translate/core';
 import {ALL_TYPES} from '@shared/models/title-icon-type';
 import {OrganizationLogoComponent} from '../../../organisation/organization-logo/organization-logo.component';
 
@@ -13,7 +14,7 @@ import {OrganizationLogoComponent} from '../../../organisation/organization-logo
     selector: 'app-dataset-infos',
     templateUrl: './dataset-infos.component.html',
     styleUrls: ['./dataset-infos.component.scss'],
-    imports: [NgClass, OrganizationLogoComponent, MatIcon, MatDivider]
+    imports: [NgClass, OrganizationLogoComponent, MatIcon, MatDivider, RouterLink, TranslatePipe]
 })
 export class DatasetsInfosComponent {
     /**
@@ -58,7 +59,7 @@ export class DatasetsInfosComponent {
 
     constructor(
         private readonly breakpointObserverService: BreakpointObserverService,
-        private readonly uriComponentCodec: URIComponentCodec,
+        protected readonly uriComponentCodec: URIComponentCodec,
         private readonly router: Router,
         iconRegistryService: IconRegistryService,
     ) {

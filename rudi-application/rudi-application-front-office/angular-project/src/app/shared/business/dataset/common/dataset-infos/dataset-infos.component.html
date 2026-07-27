@@ -13,7 +13,15 @@
   <div class="text-container">
     <div class="dataset-info">
       @if (organizationName) {
-        <div class="dataset-info-organization_name"><span >{{ organizationName }}</span>
+        <div class="dataset-info-organization_name">
+          @if (organizationId) {
+            <a class="producer-link" [routerLink]="['/organization/detail', organizationId, uriComponentCodec.normalizeString(organizationName)]"
+              [attr.aria-label]="'organization.linkToPage' | translate: {name: organizationName}"
+              [attr.title]="'organization.linkToPage' | translate: {name: organizationName}"
+              (click)="$event.stopPropagation()">{{ organizationName }}</a>
+          } @else {
+            <span>{{ organizationName }}</span>
+          }
       </div>
     }
     @if (resourceTitle) {

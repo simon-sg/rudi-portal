@@ -45,6 +45,13 @@
         color: var(--primary-text);
         font-weight: 600;
         margin-bottom: 5px;
+
+        // Le lien vers la page organisation garde la couleur du texte d'origine,
+        // seul le soulignement signale le survol (annule le bleu de la règle globale `a:hover`).
+        &:hover {
+            color: var(--primary-text);
+            text-decoration: underline;
+        }
     }
 
     .data-set-card-title {

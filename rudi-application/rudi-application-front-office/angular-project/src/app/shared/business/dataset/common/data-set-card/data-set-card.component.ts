@@ -5,11 +5,12 @@ import {MatCard, MatCardContent} from '@angular/material/card';
 import {MatIcon, MatIconRegistry} from '@angular/material/icon';
 import {MatTooltip} from '@angular/material/tooltip';
 import {DomSanitizer} from '@angular/platform-browser';
-import {Router} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {LanguageService} from '@core/i18n/language.service';
 import {BreakpointObserverService, MediaSize, NgClassObject} from '@core/services/breakpoint-observer.service';
 import {URIComponentCodec} from '@core/services/codecs/uri-component-codec';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
+import {TranslatePipe} from '@ngx-translate/core';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
 import {SplitPipe} from '@shared/utils/pipes/split.pipe';
 import {TruncateTextPipe} from '@shared/utils/pipes/truncate-text.pipe';
@@ -20,7 +21,7 @@ import {OrganizationLogoComponent} from '../../../organisation/organization-logo
     selector: 'app-data-set-card',
     templateUrl: './data-set-card.component.html',
     styleUrls: ['./data-set-card.component.scss'],
-    imports: [MatCard, NgClass, MatCardContent, OrganizationLogoComponent, MatIcon, MatButton, MatTooltip, SlicePipe, SplitPipe, TruncateTextPipe]
+    imports: [MatCard, NgClass, MatCardContent, OrganizationLogoComponent, MatIcon, MatButton, MatTooltip, SlicePipe, SplitPipe, TruncateTextPipe, RouterLink, TranslatePipe]
 })
 export class DataSetCardComponent implements OnInit {
     @Input() metadata: Metadata;
@@ -35,7 +36,7 @@ export class DataSetCardComponent implements OnInit {
         private readonly themeCacheService: ThemeCacheService,
         private readonly breakpointObserver: BreakpointObserverService,
         private readonly languageService: LanguageService,
-        private readonly uriComponentCodec: URIComponentCodec,
+        protected readonly uriComponentCodec: URIComponentCodec,
         private readonly matIconRegistry: MatIconRegistry,
         private readonly domSanitizer: DomSanitizer,
         private readonly router: Router,

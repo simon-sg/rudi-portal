@@ -16,7 +16,11 @@
       organizationType="producer"></app-organization-logo>
     </div>
     <div class="d-flex data-set-card-content">
-      <span class="w-100 data-set-card-producer ">{{metadata.producer.organization_name}}</span>
+      <a class="w-100 data-set-card-producer"
+        [routerLink]="['/organization/detail', metadata.producer.organization_id, uriComponentCodec.normalizeString(metadata.producer.organization_name)]"
+        [attr.aria-label]="'organization.linkToPage' | translate: {name: metadata.producer.organization_name}"
+        [attr.title]="'organization.linkToPage' | translate: {name: metadata.producer.organization_name}"
+        (click)="$event.stopPropagation()">{{metadata.producer.organization_name}}</a>
       <span
         class="w-100 data-set-card-title data-set-card-title-margin"
         [matTooltip]="metadata.resource_title.length > titleMaxLength ? metadata.resource_title : ''">
