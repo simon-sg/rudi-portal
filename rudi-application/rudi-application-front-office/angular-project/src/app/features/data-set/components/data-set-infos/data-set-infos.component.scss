@@ -91,6 +91,17 @@
     font-size: 15px;
     color: var(--primary-text);
 
+    // Le lien vers la page organisation garde la couleur du texte d'origine,
+    // seul le soulignement signale le survol (annule le bleu de la règle globale `a:hover`).
+    .producer-link {
+        color: inherit;
+
+        &:hover {
+            color: inherit;
+            text-decoration: underline;
+        }
+    }
+
     &.panel-provider {
 
         font-size: 15px;
