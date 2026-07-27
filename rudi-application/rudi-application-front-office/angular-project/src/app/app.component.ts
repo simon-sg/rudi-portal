@@ -2,14 +2,18 @@ import {Component, OnInit} from '@angular/core';
 import {NavigationEnd, Router, RouterOutlet} from '@angular/router';
 
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
+import {CustomizationService} from '@core/services/customization.service';
+import {LogService} from '@core/services/log.service';
 import {PageTitleService} from '@core/services/page-title.service';
 import {PropertiesMetierService} from '@core/services/properties-metier.service';
 import {RouteHistoryService} from '@core/services/route-history.service';
 import {TranslateService} from '@ngx-translate/core';
 import {FooterComponent} from '@shared/core/layout/footer/footer.component';
 import {HeaderComponent} from '@shared/core/layout/header/header.component';
+import {CustomizationDescription, KonsultService} from 'micro_service_modules/konsult/konsult-api';
 import {Script} from 'micro_service_modules/konsult/konsult-model';
-import {filter, map} from 'rxjs/operators';
+import {EMPTY} from 'rxjs';
+import {filter, map, switchMap} from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
@@ -26,6 +30,9 @@ export class AppComponent implements OnInit {
         private readonly router: Router,
         private readonly pageTitleService: PageTitleService,
         private readonly propertiesService: PropertiesMetierService,
+        private readonly customizationService: CustomizationService,
+        private readonly konsultService: KonsultService,
+        private readonly logger: LogService,
     ) {
         translate.setFallbackLang('fr');
         router.events.pipe(
@@ -69,10 +76,38 @@ export class AppComponent implements OnInit {
         this.mediaSize = this.breakpointObserver.getMediaSize();
 
         this.loadScripts();
+        this.loadOverrideCss();
     }
 
     loadScripts(): void {
         // appel aux properties back + passer le résultat au loadscript
         this.propertiesService.getScripts('scripts').subscribe(scripts => scripts?.forEach(script => AppComponent.loadScript(script)));
+    }
+
+    /**
+     * Charge et injecte le CSS de surcharge (customization.json > overrideCssFile), s'il est configuré.
+     * Permet à un déploiement de personnaliser les couleurs (--primary-color, --accent-color, etc.)
+     * sans reconstruire le bundle Angular.
+     */
+    loadOverrideCss(): void {
+        this.customizationService.getCustomizationDescription().pipe(
+            switchMap((description: CustomizationDescription) => {
+                if (!description.override_css_file) {
+                    return EMPTY;
+                }
+                return this.konsultService.downloadCustomizationResource(description.override_css_file);
+            })
+        ).subscribe({
+            next: (blob: Blob) => {
+                if (!blob || blob.size === 0) {
+                    return;
+                }
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = URL.createObjectURL(blob);
+                document.head.appendChild(link);
+            },
+            error: (error) => this.logger.error(error)
+        });
     }
 }
