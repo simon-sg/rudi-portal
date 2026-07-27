@@ -633,9 +633,17 @@
       </div>
       <div class="d-flex w-50 flex-column">
         @if (metadata?.metadata_info.metadata_provider?.organization_name) {
-          <span class="f-w-600">
-            {{metadata?.metadata_info.metadata_provider.organization_name | uppercase}}
-          </span>
+          @if (metadata.metadata_info.metadata_provider?.organization_id) {
+            <a class="f-w-600 producer-link"
+              [routerLink]="['/organization/detail', metadata.metadata_info.metadata_provider.organization_id, uriComponentCodec.normalizeString(metadata.metadata_info.metadata_provider.organization_name)]"
+              [attr.aria-label]="'organization.linkToPage' | translate: {name: metadata.metadata_info.metadata_provider.organization_name}"
+              [attr.title]="'organization.linkToPage' | translate: {name: metadata.metadata_info.metadata_provider.organization_name}"
+            >{{metadata?.metadata_info.metadata_provider.organization_name | uppercase}}</a>
+          } @else {
+            <span class="f-w-600">
+              {{metadata?.metadata_info.metadata_provider.organization_name | uppercase}}
+            </span>
+          }
         }
         @if (metadata.metadata_info.metadata_provider?.organization_address) {
           <span>
