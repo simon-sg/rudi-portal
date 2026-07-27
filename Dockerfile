@@ -42,9 +42,6 @@ ADD rudi-microservice/rudi-microservice-kos/rudi-microservice-kos-facade/target/
 FROM rudi_base as rudi-microservice-projekt
 ADD rudi-microservice/rudi-microservice-projekt/rudi-microservice-projekt-facade/target/rudi-microservice-projekt-facade.jar /opt/rudi/microservice.jar
 
-FROM rudi_base as rudi-microservice-provider
-ADD rudi-microservice/rudi-microservice-provider/rudi-microservice-provider-facade/target/rudi-microservice-provider-facade.jar /opt/rudi/microservice.jar
-
 FROM rudi_base as rudi-microservice-registry
 ADD rudi-microservice/rudi-microservice-registry/rudi-microservice-registry-facade/target/rudi-microservice-registry-facade.jar /opt/rudi/microservice.jar
 
