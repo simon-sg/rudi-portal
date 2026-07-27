@@ -82,7 +82,14 @@ export class OrderFilterFormComponent extends FilterFormComponent<string, OrderF
 
     ngOnInit(): void {
         super.ngOnInit();
-        this.order = DEFAULT_ORDER;
+        // Ne pas écraser un ordre déjà choisi (ex. DatasetListComponent en fixe un dès son propre
+        // ngOnInit, ou l'utilisateur revient sur la page avec un tri déjà sélectionné dans
+        // FiltersService, singleton root) : un écrasement inconditionnel ici déclenche une
+        // deuxième recherche complète avec un tri différent juste après la première (flicker
+        // visible : résultats affichés puis rechargés).
+        if (!this.order) {
+            this.order = DEFAULT_ORDER;
+        }
     }
 
     revert(): void {
