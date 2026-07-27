@@ -1661,6 +1661,7 @@
     },
     "organization": {
         "label": "Organisation",
+        "linkToPage": "Lien vers la page de l'organisation {{name}}",
         "noDescription": "L'organisation n'a renseigné aucune description.",
         "noUrl": "L'organisation n'a renseigné aucune information.",
         "datasetTotal": "Jeux de donnée",

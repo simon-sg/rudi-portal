@@ -7,6 +7,7 @@ import {MatCardContent, MatCardHeader, MatCardTitle} from '@angular/material/car
 import {MatExpansionPanel, MatExpansionPanelDescription, MatExpansionPanelHeader, MatExpansionPanelTitle} from '@angular/material/expansion';
 import {MatError} from '@angular/material/form-field';
 import {MatIcon} from '@angular/material/icon';
+import {RouterLink} from '@angular/router';
 import {LanguageService} from '@core/i18n/language.service';
 import {MediaSize} from '@core/services/breakpoint-observer.service';
 import {DEFAULT_VIEW_PROJECTION, DisplayMapService} from '@core/services/data-set/display-map.service';
@@ -15,6 +16,7 @@ import {KosMetierService} from '@core/services/kos-metier.service';
 import {LogService} from '@core/services/log.service';
 import {PropertiesMetierService} from '@core/services/properties-metier.service';
 import {SnackBarService} from '@core/services/snack-bar.service';
+import {URIComponentCodec} from '@core/services/codecs/uri-component-codec';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ContactButtonComponent} from '@shared/business/contacts/contact-button/contact-button.component';
 import {OrganizationLogoComponent} from '@shared/business/organisation/organization-logo/organization-logo.component';
@@ -63,7 +65,7 @@ import SelfdataCatagoriesEnum = SelfdataContent.SelfdataCategoriesEnum;
         MatExpansionPanelHeader, NgClass, MatExpansionPanelTitle, MatExpansionPanelDescription,
         BooleanDataBlockComponent, MatError, MatIcon, MatButton,
         MapComponent, OrganizationLogoComponent, ContactButtonComponent,
-        AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe, ReplaceIfNullPipe]
+        AsyncPipe, UpperCasePipe, DatePipe, TranslatePipe, ReplaceIfNullPipe, RouterLink]
 })
 export class DataSetInfosComponent implements OnInit {
 
@@ -114,6 +116,7 @@ export class DataSetInfosComponent implements OnInit {
                 private readonly clipboard: Clipboard,
                 private readonly displayMapService: DisplayMapService,
                 private readonly logService: LogService,
+                protected readonly uriComponentCodec: URIComponentCodec,
     ) {
     }
 
