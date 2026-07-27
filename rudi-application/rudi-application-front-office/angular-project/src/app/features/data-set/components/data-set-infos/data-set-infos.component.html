@@ -348,6 +348,7 @@
           <mat-expansion-panel-header class="rudi-mat-expansion-panel-source" id="medias-table-header">
             @if (metaDataFunctions.isMediaTypeFile(media)) {
               <mat-panel-title class="rudi-panel-source-title">
+                <mat-icon class="rudi-panel-source-icon">{{ getMediaFileIcon(media) }}</mat-icon>
                 @if (media.media_name) {
                   {{'common.fichier'|translate}} "{{ media.media_name }}" ({{getMediaFileExtension(media)}})
                 } @else {
