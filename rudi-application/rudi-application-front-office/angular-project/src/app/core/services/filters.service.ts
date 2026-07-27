@@ -5,6 +5,7 @@ import {debounceTime} from 'rxjs/operators';
 import {AccessStatusFilter} from './filters/access-status-filter';
 import {DatesFilter} from './filters/dates-filter';
 import {DEFAULT_VALUE as DEFAULT_ORDER_VALUE, OrderFilter} from './filters/order-filter';
+import {FileTypesFilter} from './filters/file-types-filter';
 import {ProducerNamesFilter} from './filters/producer-names-filter';
 import {SearchFilter} from './filters/search-filter';
 import {ThemesFilter} from './filters/themes-filter';
@@ -22,6 +23,7 @@ const EMPTY_FILTERS: Filters = {
     accessStatus: null,
     globalIds: [],
     producerUuids: [],
+    fileTypes: [],
 };
 
 @Injectable({
@@ -39,6 +41,7 @@ export class FiltersService {
     readonly datesFilter = new DatesFilter(this, this.filters);
     readonly orderFilter = new OrderFilter(this, this.filters);
     readonly accessStatusFilter = new AccessStatusFilter(this, this.filters);
+    readonly fileTypesFilter = new FileTypesFilter(this, this.filters);
     private readonly filtersBackups: Filters[] = [];
     private readonly childrenFilters = [
         this.searchFilter,
@@ -46,7 +49,8 @@ export class FiltersService {
         this.producerNamesFilter,
         this.datesFilter,
         this.orderFilter,
-        this.accessStatusFilter
+        this.accessStatusFilter,
+        this.fileTypesFilter
     ];
 
     getChildrenFilters() {

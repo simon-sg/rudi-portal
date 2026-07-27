@@ -454,6 +454,7 @@
         "toutEffacer": "Effacer tout",
         "thematique": "Thématique",
         "producteur": "Producteur",
+        "typeFichier": "Type de fichier",
         "couvertureTemporelle": "Couverture temporelle",
         "restrictedAccess": {
             "statut": "Statut",

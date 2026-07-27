@@ -8,6 +8,7 @@ import {LogService} from '@core/services/log.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
 import {TranslatePipe} from '@ngx-translate/core';
 import {LoaderComponent} from '@shared/core/common/loader/loader.component';
+import {Filters} from '@shared/models/filters';
 import {Metadata, MetadataList} from 'micro_service_modules/api-kaccess';
 import {NgxPaginationModule} from 'ngx-pagination';
 import {BehaviorSubject, Subject} from 'rxjs';
@@ -123,6 +124,11 @@ export class DatasetListComponent implements OnInit, OnDestroy {
      */
     searchMetadatas(): void {
         this.isLoading = true;
+        const fileTypes = this.filtersService.fileTypesFilter.value;
+        if (fileTypes?.length) {
+            this.searchMetadatasFilteredByFileType(fileTypes);
+            return;
+        }
         this.konsultMetierService
             .searchMetadatas(this.filtersService.currentFilters, this.accessStatusHiddenValues, this.offset, this.limit)
             .subscribe({
@@ -136,6 +142,50 @@ export class DatasetListComponent implements OnInit, OnDestroy {
                     this.logService.error('getMetadatas failed', error.message);
                 }
             });
+    }
+
+    private searchMetadatasFilteredByFileType(fileTypes: string[]): void {
+        const currentFilters = this.filtersService.currentFilters;
+        // Si le filtre type de fichier est le SEUL filtre actif, on peut utiliser l'instantané
+        // complet du catalogue (mis en cache, quasi instantané) plutôt que de refaire un scan live
+        // (~100s) par-dessus le scan déjà fait pour peupler les cases à cocher — c'est ce second
+        // scan qui donnait l'impression que le filtre "moulinait sans résultat". Dès qu'un autre
+        // filtre backend est actif en plus, on retombe sur le scan live (plus lent mais correct).
+        const source$ = this.onlyFileTypeFilterActive(currentFilters)
+            ? this.konsultMetierService.getCatalogSnapshot()
+            : this.konsultMetierService.searchAllMetadatasMatchingFilters(currentFilters, this.accessStatusHiddenValues);
+
+        source$.subscribe({
+            next: (allMetadatas) => {
+                const filtered = allMetadatas.filter(metadata =>
+                    this.konsultMetierService.datasetMatchesFileTypes(metadata, fileTypes)
+                );
+                this.metadataList = {
+                    total: filtered.length,
+                    items: filtered.slice(this.offset, this.offset + this.limit)
+                };
+                this.metadataListTotal.emit(this.metadataList.total);
+                this.isLoading = false;
+            },
+            error: (error) => {
+                this.isLoading = false;
+                this.logService.error('getMetadatas (file type filter) failed', error.message);
+            }
+        });
+    }
+
+    private onlyFileTypeFilterActive(filters: Filters): boolean {
+        return !filters.search &&
+            filters.themes.length === 0 &&
+            filters.keywords.length === 0 &&
+            filters.producerNames.length === 0 &&
+            !filters.dates?.debut && !filters.dates?.fin &&
+            filters.accessStatus === null &&
+            // ngOnInit force toujours producerUuids à [this.producerUuid] (même undefined) : un
+            // tableau de valeurs null/undefined signifie "aucun producteur imposé".
+            (filters.producerUuids ?? []).every(id => id == null) &&
+            (filters.globalIds ?? []).length === 0 &&
+            !this.accessStatusHiddenValues?.length;
     }
 
     /**
