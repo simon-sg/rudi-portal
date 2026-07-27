@@ -93,7 +93,11 @@
                                 [checked]="i === 0"
                                 [value]="item"
                                 class="mb-2">
-                                {{ getMediaFileExtension(item) }}
+                                @if (item.media_name) {
+                                  {{ item.media_name }} ({{ getMediaFileExtension(item) }})
+                                } @else {
+                                  {{ getMediaFileExtension(item) }}
+                                }
                               </mat-radio-button>
                             }
                           </mat-radio-group>

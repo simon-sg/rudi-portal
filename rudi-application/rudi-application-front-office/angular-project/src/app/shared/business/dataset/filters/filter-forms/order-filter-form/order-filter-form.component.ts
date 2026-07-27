@@ -27,7 +27,6 @@ const DEFAULT_ORDER: OrderValue = 'resource_title';
 export class OrderFilterFormComponent extends FilterFormComponent<string, OrderFilter, OrderItem> implements OnInit {
 
     items?: OrderItem[];
-    private orderValues?: OrderValue[];
 
     constructor(
         protected readonly filtersService: FiltersService,
@@ -38,7 +37,23 @@ export class OrderFilterFormComponent extends FilterFormComponent<string, OrderF
     }
 
     @Input() set values(values: OrderValue[] | undefined) {
-        this.orderValues = values;
+        if (values) {
+            const observableItems: Observable<OrderItem>[] = values.map(value => {
+                const i18nKey = OrderFilterFormComponent.i18KeyFor(value);
+                return this.translateService.get(i18nKey).pipe(
+                    switchMap(translatedOrderName => {
+                        return of({
+                            name: translatedOrderName,
+                            value
+                        });
+                    })
+                );
+            });
+            forkJoin(observableItems).subscribe((items: OrderItem[]) => {
+                this.items = items;
+                this.initFormGroup();
+            });
+        }
     }
 
     get selectedItems(): OrderItem[] {
@@ -67,24 +82,14 @@ export class OrderFilterFormComponent extends FilterFormComponent<string, OrderF
 
     ngOnInit(): void {
         super.ngOnInit();
-        this.order = DEFAULT_ORDER;
-        this.control?.setValue(DEFAULT_ORDER, {emitEvent: false});
-        this.buildItems();
-    }
-
-    private buildItems(): void {
-        if (!this.orderValues) {
-            return;
+        // Ne pas écraser un ordre déjà choisi (ex. DatasetListComponent en fixe un dès son propre
+        // ngOnInit, ou l'utilisateur revient sur la page avec un tri déjà sélectionné dans
+        // FiltersService, singleton root) : un écrasement inconditionnel ici déclenche une
+        // deuxième recherche complète avec un tri différent juste après la première (flicker
+        // visible : résultats affichés puis rechargés).
+        if (!this.order) {
+            this.order = DEFAULT_ORDER;
         }
-        const observableItems: Observable<OrderItem>[] = this.orderValues.map(value => {
-            const i18nKey = OrderFilterFormComponent.i18KeyFor(value);
-            return this.translateService.get(i18nKey).pipe(
-                switchMap(translatedOrderName => of({name: translatedOrderName, value}))
-            );
-        });
-        forkJoin(observableItems).subscribe((items: OrderItem[]) => {
-            this.items = items;
-        });
     }
 
     revert(): void {
@@ -103,7 +108,7 @@ export class OrderFilterFormComponent extends FilterFormComponent<string, OrderF
 
     protected buildFormGroup(): FormGroup {
         return new FormGroup({
-            sortFormControl: new FormControl(this.order, Validators.required),
+            sortFormControl: new FormControl(null, Validators.required),
         });
     }
 

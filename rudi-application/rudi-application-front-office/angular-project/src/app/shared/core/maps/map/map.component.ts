@@ -33,7 +33,7 @@ import {Style} from 'ol/style';
 import View from 'ol/View';
 import proj4 from 'proj4';
 import {Observable, of} from 'rxjs';
-import {tap} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {SearchAutocompleteComponent} from '../../search/search-autocomplete/search-autocomplete.component';
 import {MapPopupComponent} from '../map-popup/map-popup.component';
 import MediaTypeEnum = Media.MediaTypeEnum;
@@ -201,16 +201,21 @@ export class MapComponent implements AfterViewInit, OnInit {
         if (this.map == null) {
             let projection: Observable<Projection>;
 
-            // Affichage de données cartographiques d'un JDD récupération de la projection et register avec proj4
+            // La projection de la VUE (et du fond de plan) est TOUJOURS EPSG:3857, projection native
+            // des fonds web-mercator. Le default_crs propre au connecteur du média n'est PAS la
+            // projection de la carte entière : on l'enregistre seulement dans proj4 pour qu'OpenLayers
+            // sache reprojeter la couche WMS/WFS de ce média vers la vue (cf. map.layer.function.ts).
             if (this.media != null) {
-                let projectionString = getDefaultCrs(this.media);
-                projectionString ??= DEFAULT_VIEW_PROJECTION;
-                this.viewProjectionString = projectionString;
-                projection = this.displayMapService.registerAndGetProjection(projectionString).pipe(
+                const mediaCrs = getDefaultCrs(this.media);
+                this.viewProjectionString = DEFAULT_VIEW_PROJECTION;
+                const register$ = (mediaCrs && mediaCrs !== DEFAULT_VIEW_PROJECTION)
+                    ? this.displayMapService.registerAndGetProjection(mediaCrs).pipe(map(() => get(DEFAULT_VIEW_PROJECTION)))
+                    : of(get(DEFAULT_VIEW_PROJECTION));
+                projection = register$.pipe(
                     tap(() => {
-                        this.centeredPoint = proj4(GPS_PROJECTION, projectionString, this.mapCenter);
-                        const topLeft = proj4(GPS_PROJECTION, projectionString, this.mapCenterTopleft);
-                        const bottomRight = proj4(GPS_PROJECTION, projectionString, this.mapCenterBottomRight);
+                        this.centeredPoint = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenter);
+                        const topLeft = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterTopleft);
+                        const bottomRight = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterBottomRight);
                         this.initExtent = boundingExtent([topLeft, bottomRight]);
                     })
                 );

@@ -20,6 +20,8 @@ public class SecurityConstants {
 	protected static final String[] SB_PERMIT_ALL_URL = {
 			// URL public
 			"/apigateway/v1/application-information", "/apigateway/v1/healthCheck", "/apigateway/v1/encryption-key",
+			// Téléchargement de média (données ouvertes) : accès public, cohérent avec SB_INCLUDE_URLS
+			"/apigateway/datasets/**",
 			// OAuth2
 			"/oauth/**",
 			// swagger ui / openapi
