@@ -15,7 +15,11 @@
     border-top-right-radius: 5px;
     display: flex;
     align-items: center;
-    padding: 0 16px;
+    // padding-top laisse la place à l'étiquette flottante du mat-form-field "outline" : elle est
+    // dessinée à cheval sur la bordure supérieure du champ (convention Material), donc déborde
+    // d'environ 7px au-dessus de la boîte du champ. Sans cette marge, ce débordement retombe sur la
+    // bande grise des onglets juste au-dessus au lieu de rester sur le fond bleu de ce bandeau.
+    padding: 14px 16px 4px;
 
     mat-form-field {
         width: 100%;
