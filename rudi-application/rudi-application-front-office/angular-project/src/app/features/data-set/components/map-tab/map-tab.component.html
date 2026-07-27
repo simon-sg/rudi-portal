@@ -8,10 +8,14 @@
           <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
             @for (candidate of candidates; track candidate) {
               <mat-option [value]="candidate">
-                @if (candidate.media_name) {
-                  {{ candidate.media_name }}
-                } @else if (candidate.media_type === mediaType.File) {
-                  {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
+                @if (candidate.media_type === mediaType.File) {
+                  @if (candidate.media_name) {
+                    {{ candidate.media_name }}
+                  } @else {
+                    {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
+                  }
+                } @else if (candidate.media_caption) {
+                  {{ candidate.media_caption }}
                 } @else {
                   {{ 'metaData.service'|translate }} ({{ candidate.connector?.interface_contract }})
                 }
