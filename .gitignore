@@ -1,0 +1,17 @@
+# Maven / Java build output
+target/
+
+# Node / Angular
+node_modules/
+.angular/
+dist/
+node_installation/
+
+# Angular OpenAPI-generated API client modules (regenerated from the backend contracts)
+micro_service_modules/
+
+# Editors / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
