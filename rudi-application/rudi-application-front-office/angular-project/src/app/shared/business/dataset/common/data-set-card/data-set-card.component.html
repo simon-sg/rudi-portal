@@ -17,7 +17,9 @@
     </div>
     <div class="d-flex data-set-card-content">
       <span class="w-100 data-set-card-producer ">{{metadata.producer.organization_name}}</span>
-      <span class="w-100 data-set-card-title data-set-card-title-margin">
+      <span
+        class="w-100 data-set-card-title data-set-card-title-margin"
+        [matTooltip]="metadata.resource_title.length > titleMaxLength ? metadata.resource_title : ''">
         @if (isRestricted) {
           <mat-icon class="key-icon" svgIcon="key_icon_88_blue"></mat-icon>
         }
