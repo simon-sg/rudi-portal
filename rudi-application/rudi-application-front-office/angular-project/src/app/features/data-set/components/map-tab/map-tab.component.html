@@ -1,16 +1,42 @@
 <mat-card class="main-container">
   <app-loader [allPage]="false" [isLight]="true" [noText]="true" [active]="isMapLoading"></app-loader>
   @if (!isMapLoading && !isErrorAccess) {
-    <div class="map-header"></div>
-    <div class="map-container">
-      <app-map [mapId]="'rudi-map-tab'"
-        [baseLayers]="baseLayers"
-        [hasSearchAddress]="true"
-        [metadata]="metadata"
-        [media]="mediaToDisplay"
-        >
-      </app-map>
+    <div class="map-header">
+      @if (candidates && candidates.length > 1) {
+        <mat-form-field appearance="outline">
+          <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
+          <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
+            @for (candidate of candidates; track candidate) {
+              <mat-option [value]="candidate">
+                @if (candidate.media_name) {
+                  {{ candidate.media_name }}
+                } @else if (candidate.media_type === mediaType.File) {
+                  {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
+                } @else {
+                  {{ 'metaData.service'|translate }} ({{ candidate.connector?.interface_contract }})
+                }
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
     </div>
+    @if (!hasMediaError) {
+      <div class="map-container">
+        <app-map [mapId]="'rudi-map-tab'"
+          [baseLayers]="baseLayers"
+          [hasSearchAddress]="true"
+          [metadata]="metadata"
+          [media]="selectedMedia"
+          >
+        </app-map>
+      </div>
+    } @else {
+      <app-error-box
+        [text]="'metaData.mapDataTab.error' | translate"
+        >
+      </app-error-box>
+    }
   }
   @if (isErrorAccess) {
     <app-error-box

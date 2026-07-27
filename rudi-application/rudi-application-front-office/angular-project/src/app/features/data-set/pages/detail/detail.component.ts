@@ -20,7 +20,6 @@ import {IconRegistryService} from '@core/services/icon-registry.service';
 import {KonsultMetierService} from '@core/services/konsult-metier.service';
 import {KosMetierService} from '@core/services/kos-metier.service';
 import {LogService} from '@core/services/log.service';
-import {MAP_CONNECTOR_PARAMETERS_REQUIRED} from '@core/services/map/map-connector-required-parameters';
 import {MAP_PROTOCOLS_SUPPORTED} from '@core/services/map/map-protocols';
 import {PageTitleService} from '@core/services/page-title.service';
 import {PropertiesMetierService} from '@core/services/properties-metier.service';
@@ -35,7 +34,6 @@ import {DetailFunctions} from '@features/data-set/pages/detail/detail-functions'
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ProjectListComponent} from '@shared/business/projects/project-list/project-list.component';
 import {BannerButtonComponent} from '@shared/core/banner/banner-button/banner-button.component';
-import {ErrorBoxComponent} from '@shared/core/common/error-box/error-box.component';
 import {LoaderComponent} from '@shared/core/common/loader/loader.component';
 import {TabComponent} from '@shared/core/common/tab/tab.component';
 import {TabsComponent} from '@shared/core/common/tabs/tabs.component';
@@ -47,7 +45,7 @@ import {ALL_TYPES} from '@shared/models/title-icon-type';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
 import {ObservableUtils} from '@shared/utils/observable-utils';
 import saveAs from 'file-saver';
-import {ConnectorConnectorParameters, Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
+import {Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
 import * as mediaType from 'micro_service_modules/api-kaccess/model/media';
 import {Project} from 'micro_service_modules/projekt/projekt-model';
 import moment from 'moment';
@@ -66,7 +64,7 @@ const actionOnStartCreateLinkedDataset = 'ON_START_CREATE_LINKED_DATASET';
     selector: 'app-detail',
     templateUrl: './detail.component.html',
     styleUrls: ['./detail.component.scss'],
-    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, ErrorBoxComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, MatCheckbox, MatButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
+    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, MatCheckbox, MatButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
 })
 export class DetailComponent implements OnInit {
     MAX_DATASETS_DISPLAYED = 3;
@@ -97,11 +95,16 @@ export class DetailComponent implements OnInit {
      */
     tableMediaCandidates: MediaFile[] = [];
 
+    /**
+     * Liste des médias éligibles à l'affichage cartographique (GeoJSON ou protocole WMS/WFS/WMTS),
+     * pour le sélecteur de fichier de l'onglet « Carte ». Construite une seule fois au chargement du
+     * JDD (voir buildMapMediaCandidates), pas dans le getter isMapDisplayed.
+     */
+    mapMediaCandidates: Media[] = [];
+
     private _metadata: Metadata | undefined;
     restrictedDatasetIcon = 'key_icon_88_secondary-color';
     selfDataIcon = 'self-data-icon';
-
-    mapHasError: boolean = false;
 
     nbLinkedProjects: number = 1;
 
@@ -201,16 +204,22 @@ export class DetailComponent implements OnInit {
     }
 
     get isMapDisplayed(): boolean {
-        for (const item of this.metadata.available_formats) {
-            const objet: MediaFile = item as MediaFile;
-            if (objet.file_type === FileTypes.GEO_JSON ||
-                MAP_PROTOCOLS_SUPPORTED.includes(objet.connector.interface_contract)) {
-                this.mediaToDisplayMap = item;
-                return true;
-            }
-        }
+        return this.mapMediaCandidates.length > 0;
+    }
 
-        return false;
+    /**
+     * Construit la liste des médias pouvant être affichés dans l'onglet « Carte » (GeoJSON ou
+     * protocole cartographique WMS/WFS/WMTS), et sélectionne par défaut le premier trouvé —
+     * comportement identique à l'ancien getter isMapDisplayed, mais sans effet de bord.
+     * @private
+     */
+    private buildMapMediaCandidates(metadata: Metadata): void {
+        this.mapMediaCandidates = metadata.available_formats.filter((item: Media) => {
+            const objet: MediaFile = item as MediaFile;
+            return objet.file_type === FileTypes.GEO_JSON ||
+                MAP_PROTOCOLS_SUPPORTED.includes(objet.connector.interface_contract);
+        });
+        this.mediaToDisplayMap = this.mapMediaCandidates[0];
     }
 
     get themePicto(): string {
@@ -254,8 +263,8 @@ export class DetailComponent implements OnInit {
                 if (metadata) {
                     this.metadata = metadata;
                     this.restrictedAccess = this.metadata?.access_condition?.confidentiality?.restricted_access;
-                    this.handleMetadataProperties(this.metadata);
                     this.buildTableMediaCandidates(this.metadata);
+                    this.buildMapMediaCandidates(this.metadata);
 
                     // L'item sélectionné est le premier type FILE de la liste des formats disponibles
                     const premierMediaFichier = this.metadata.available_formats.filter(f => f.media_type === 'FILE')[0];
@@ -686,34 +695,6 @@ export class DetailComponent implements OnInit {
         }
 
         return of(null);
-    }
-
-    /**
-     * La callback appelée quand on veut s'assurer que les données carto liées au JDD sont complètes
-     * @param metadata l'objet métadonnée du JDD
-     * @private
-     */
-    private handleMetadataProperties(metadata: Metadata): void {
-        if (this.isMapDisplayed) {
-            const connectorParameters: ConnectorConnectorParameters[] = metadata.available_formats[0].connector.connector_parameters;
-            if (connectorParameters) {
-                this.mapHasError = !this.hasAllRequiredKeys(connectorParameters, MAP_CONNECTOR_PARAMETERS_REQUIRED);
-            } else {
-                this.mapHasError = true;
-            }
-        }
-    }
-
-    // Vérification que toutes les clés obligatoires sont présentes et valides
-    private hasAllRequiredKeys(connectorParameters: ConnectorConnectorParameters[], requiredKeys: string[]): boolean {
-        return requiredKeys.every(requiredKey =>
-            connectorParameters.some(obj => this.isValidObject(obj) && obj.key === requiredKey)
-        );
-    }
-
-    // Validation d'un un objet
-    private isValidObject(obj: any): boolean {
-        return typeof obj.key === 'string' && 'value' in obj;
     }
 
     protected setLinkedProjectTotal($event: number): void {
