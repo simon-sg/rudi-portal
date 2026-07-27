@@ -24,5 +24,13 @@
     mat-form-field {
         width: 100%;
         max-width: 420px;
+
+        // Le champ "outline" est transparent par défaut : sur le fond bleu du bandeau, ça donnait
+        // l'impression d'un bug d'affichage plutôt que d'un sélecteur voulu. Fond blanc explicite
+        // pour qu'il se détache clairement, comme la boîte de recherche du composant carte.
+        ::ng-deep .mat-mdc-text-field-wrapper {
+            background-color: #fff;
+            border-radius: 4px;
+        }
     }
 }
