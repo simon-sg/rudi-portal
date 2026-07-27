@@ -8,29 +8,22 @@
 }
 
 .map-header {
-    min-height: 50px;
-    height: auto;
+    height: 50px;
     background-color: var(--primary-color);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
-    display: flex;
-    align-items: center;
-    // padding-top laisse la place à l'étiquette flottante du mat-form-field "outline" : elle est
-    // dessinée à cheval sur la bordure supérieure du champ (convention Material), donc déborde
-    // d'environ 7px au-dessus de la boîte du champ. Sans cette marge, ce débordement retombe sur la
-    // bande grise des onglets juste au-dessus au lieu de rester sur le fond bleu de ce bandeau.
-    padding: 14px 16px 4px;
+}
+
+// Sélecteur de fichier au-dessus de la carte. Volontairement HORS de .map-header (bande bleue
+// décorative) : y loger un mat-form-field posait un problème de lisibilité récurrent (étiquette
+// flottante à cheval sur la bordure du champ, moitié sur fond blanc moitié sur fond bleu). Fond
+// clair standard de la carte, même traitement que le sélecteur de l'onglet Tableau
+// (spreadsheet-tab.component.scss :: .table-media-select).
+.map-media-select {
+    padding: 16px 16px 0;
 
     mat-form-field {
         width: 100%;
         max-width: 420px;
-
-        // Le champ "outline" est transparent par défaut : sur le fond bleu du bandeau, ça donnait
-        // l'impression d'un bug d'affichage plutôt que d'un sélecteur voulu. Fond blanc explicite
-        // pour qu'il se détache clairement, comme la boîte de recherche du composant carte.
-        ::ng-deep .mat-mdc-text-field-wrapper {
-            background-color: #fff;
-            border-radius: 4px;
-        }
     }
 }

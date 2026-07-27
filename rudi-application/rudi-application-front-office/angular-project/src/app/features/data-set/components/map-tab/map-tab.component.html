@@ -1,8 +1,8 @@
 <mat-card class="main-container">
   <app-loader [allPage]="false" [isLight]="true" [noText]="true" [active]="isMapLoading"></app-loader>
   @if (!isMapLoading && !isErrorAccess) {
-    <div class="map-header">
-      @if (candidates && candidates.length > 1) {
+    @if (candidates && candidates.length > 1) {
+      <div class="map-media-select">
         <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
           <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
@@ -19,8 +19,9 @@
             }
           </mat-select>
         </mat-form-field>
-      }
-    </div>
+      </div>
+    }
+    <div class="map-header"></div>
     @if (!hasMediaError) {
       <div class="map-container">
         <app-map [mapId]="'rudi-map-tab'"
