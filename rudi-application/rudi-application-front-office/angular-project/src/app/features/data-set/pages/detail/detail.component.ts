@@ -1,12 +1,11 @@
 import {CommonModule, NgClass} from '@angular/common';
 import {HttpErrorResponse, HttpResponse} from '@angular/common/http';
 import {Component, OnInit, ViewChild} from '@angular/core';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {MatButton} from '@angular/material/button';
+import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import {MatIcon} from '@angular/material/icon';
 import {MatMenu, MatMenuTrigger} from '@angular/material/menu';
-import {MatRadioButton, MatRadioGroup} from '@angular/material/radio';
 import {MatSidenavContainer, MatSidenavContent} from '@angular/material/sidenav';
 import {ActivatedRoute, Params, Router, RouterOutlet} from '@angular/router';
 import {FileTypes} from '@core/file-types';
@@ -52,8 +51,9 @@ import {ConnectorConnectorParameters, Licence, LicenceStandard, Media, MediaFile
 import * as mediaType from 'micro_service_modules/api-kaccess/model/media';
 import {Project} from 'micro_service_modules/projekt/projekt-model';
 import moment from 'moment';
-import {BehaviorSubject, combineLatest, from, Observable, of, throwError} from 'rxjs';
+import {BehaviorSubject, combineLatest, forkJoin, from, Observable, of, throwError} from 'rxjs';
 import {catchError, filter, map, switchMap, take, tap} from 'rxjs/operators';
+import JSZip from 'jszip';
 import {DatasetInformationsComponent} from '../../components/dataset-informations/dataset-informations.component';
 import {MapTabComponent} from '../../components/map-tab/map-tab.component';
 import {SpreadsheetTabComponent} from '../../components/spreadsheet-tab/spreadsheet-tab.component';
@@ -66,12 +66,12 @@ const actionOnStartCreateLinkedDataset = 'ON_START_CREATE_LINKED_DATASET';
     selector: 'app-detail',
     templateUrl: './detail.component.html',
     styleUrls: ['./detail.component.scss'],
-    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, ErrorBoxComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, FormsModule, ReactiveFormsModule, MatRadioGroup, MatRadioButton, MatButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
+    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, ErrorBoxComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, MatCheckbox, MatButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
 })
 export class DetailComponent implements OnInit {
     MAX_DATASETS_DISPLAYED = 3;
     @ViewChild('clickMenuFormatTrigger') clickMenuFormatTrigger: MatMenuTrigger;
-    form: FormGroup;
+    selectedMedias: Media[] = [];
     public selection: string;
     mediaType = mediaType.Media.MediaTypeEnum;
     mediaSize: MediaSize;
@@ -110,7 +110,6 @@ export class DetailComponent implements OnInit {
         iconRegistryService: IconRegistryService,
         public dialog: MatDialog,
         private readonly themeCacheService: ThemeCacheService,
-        private readonly fb: FormBuilder,
         private readonly konsultMetierService: KonsultMetierService,
         private readonly breakpointObserverService: BreakpointObserverService,
         private readonly kosMetierService: KosMetierService,
@@ -129,9 +128,6 @@ export class DetailComponent implements OnInit {
         private readonly logService: LogService
     ) {
         this.mediaSize = this.breakpointObserverService.getMediaSize();
-        this.form = this.fb.group({
-            options: []
-        });
         iconRegistryService.addAllSvgIcons(ALL_TYPES);
         themeCacheService.init();
     }
@@ -156,14 +152,14 @@ export class DetailComponent implements OnInit {
         }
     }
 
-    get selectedItem(): Media {
-        return this.form.controls.options.value;
+    isMediaSelected(media: Media): boolean {
+        return this.selectedMedias.includes(media);
     }
 
-    set selectedItem(selectedItem: Media) {
-        this.form.setValue({
-            options: selectedItem || null
-        });
+    toggleMediaSelection(media: Media, checked: boolean): void {
+        this.selectedMedias = checked
+            ? [...this.selectedMedias, media]
+            : this.selectedMedias.filter(m => m !== media);
     }
 
     get isRestricted(): boolean {
@@ -248,7 +244,8 @@ export class DetailComponent implements OnInit {
                     this.handleMetadataProperties(this.metadata);
 
                     // L'item sélectionné est le premier type FILE de la liste des formats disponibles
-                    this.selectedItem = this.metadata.available_formats.filter(f => f.media_type === 'FILE')[0];
+                    const premierMediaFichier = this.metadata.available_formats.filter(f => f.media_type === 'FILE')[0];
+                    this.selectedMedias = premierMediaFichier ? [premierMediaFichier] : [];
                     this.conceptUri = this.getConceptUri();
                     this.licenceLabel = this.getLicenceLabel();
                 } else {
@@ -378,32 +375,78 @@ export class DetailComponent implements OnInit {
     }
 
     /**
-     * Fonction permettant de télécharger un fichier suivant son format
+     * Fonction permettant de télécharger le ou les formats sélectionnés.
+     * 1 seul format coché : téléchargement direct, comportement inchangé.
+     * Plusieurs formats cochés : les fichiers sont regroupés dans une seule archive ZIP.
      */
     onDownloadFormat(): void {
+        if (this.selectedMedias.length === 0) {
+            return;
+        }
         this.isLoading = true;
-        const selectedItem = this.selectedItem;
-        if (selectedItem) {
-            this.konsultMetierService.downloadMetadataMedia(selectedItem.connector.url)
+        this.clickMenuFormatTrigger.closeMenu();
+
+        if (this.selectedMedias.length === 1) {
+            const media = this.selectedMedias[0];
+            this.konsultMetierService.downloadMetadataMedia(media.connector.url)
                 .subscribe({
                     next: (response) => {
                         this.isLoading = false;
-                        this.downLoadFile(response, selectedItem);
+                        this.downLoadFile(response, media);
                     },
-                    error: () => {
-                        this.isLoading = false;
-                        const message = this.translateService.instant('common.echec');
-                        const linkLabel = this.translateService.instant('common.ici');
-                        this.propertiesMetierService.get('front.contact').subscribe(link => {
-                            this.snackBarService.openSnackBar({
-                                message: `${message} <a href="${link}">${linkLabel}</a>.`,
-                                level: Level.ERROR
-                            });
-                        });
-                    }
+                    error: () => this.handleDownloadError()
                 });
-            this.clickMenuFormatTrigger.closeMenu();
+            return;
         }
+
+        forkJoin(
+            this.selectedMedias.map(media =>
+                this.konsultMetierService.downloadMetadataMedia(media.connector.url).pipe(
+                    map(response => ({media, blob: response.body}))
+                )
+            )
+        ).subscribe({
+            next: (results) => this.downloadAsZip(results),
+            error: () => this.handleDownloadError()
+        });
+    }
+
+    /**
+     * Regroupe les fichiers téléchargés dans une seule archive ZIP et déclenche le téléchargement.
+     */
+    private downloadAsZip(results: { media: Media, blob: Blob }[]): void {
+        const zip = new JSZip();
+        const nomsUtilises = new Set<string>();
+        results.forEach(({media, blob}) => {
+            let nom = media.media_name || 'fichier';
+            let compteur = 2;
+            while (nomsUtilises.has(nom)) {
+                nom = `${media.media_name || 'fichier'}_${compteur}`;
+                compteur++;
+            }
+            nomsUtilises.add(nom);
+            zip.file(nom, blob);
+        });
+        zip.generateAsync({type: 'blob'}).then(zipBlob => {
+            this.isLoading = false;
+            const nomZip = this.uriComponentCodec.normalizeString(this.metadata.resource_title) + '.zip';
+            saveAs(zipBlob, nomZip);
+        });
+    }
+
+    /**
+     * Gestion d'erreur commune aux téléchargements (simple ou multiple).
+     */
+    private handleDownloadError(): void {
+        this.isLoading = false;
+        const message = this.translateService.instant('common.echec');
+        const linkLabel = this.translateService.instant('common.ici');
+        this.propertiesMetierService.get('front.contact').subscribe(link => {
+            this.snackBarService.openSnackBar({
+                message: `${message} <a href="${link}">${linkLabel}</a>.`,
+                level: Level.ERROR
+            });
+        });
     }
 
     getLicenceLabel(): Observable<string> {
