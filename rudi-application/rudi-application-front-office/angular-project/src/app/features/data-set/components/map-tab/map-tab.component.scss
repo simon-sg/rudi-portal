@@ -8,8 +8,17 @@
 }
 
 .map-header {
-    height: 50px;
+    min-height: 50px;
+    height: auto;
     background-color: var(--primary-color);
     border-top-left-radius: 5px;
     border-top-right-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+
+    mat-form-field {
+        width: 100%;
+        max-width: 420px;
+    }
 }

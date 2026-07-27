@@ -61,15 +61,11 @@
               [invisible]="false"
               >
               <ng-template>
-                @if (!mapHasError) {
-                  <app-map-tab
-                    [metadata]="metadata"
-                    [mediaToDisplay]="mediaToDisplayMap"
-                  ></app-map-tab>
-                } @else {
-                  <app-error-box [text]="'metaData.mapDataTab.error' | translate">
-                  </app-error-box>
-                }
+                <app-map-tab
+                  [metadata]="metadata"
+                  [mediaToDisplay]="mediaToDisplayMap"
+                  [candidates]="mapMediaCandidates"
+                ></app-map-tab>
               </ng-template>
             </app-tab>
           }
