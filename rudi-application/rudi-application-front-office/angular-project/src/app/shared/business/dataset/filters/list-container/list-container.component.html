@@ -10,10 +10,12 @@
   <app-dataset-list-banner
     (selectedDatesItemsChange)="selectedDatesItems = $event"
     (selectedProducerItemsChange)="selectedProducerItems = $event"
+    (selectedFileTypeItemsChange)="selectedFileTypeItems = $event"
     (selectedAccessStatusItemsChange)="selectedAccessStatusItems = $event"
     (selectedThemeItemsChange)="selectedThemeItems = $event"
     [mediaSize]="mediaSize"
     [producerNames]="producerNames"
+    [fileTypes]="fileTypes"
     [themes]="themes"
     [accessStatusForcedValue]="accessStatusForcedValue"
     [accessStatusHiddenValues]="accessStatusHiddenValues"
@@ -22,6 +24,7 @@
   <app-filters-items-list
     [selectedDatesItems]="selectedDatesItems"
     [selectedProducerItems]="selectedProducerItems"
+    [selectedFileTypeItems]="selectedFileTypeItems"
     [hasSelectedItems]="hasSelectedItems"
     [selectedAccessStatusItems]="accessStatusForcedValue === undefined ? selectedAccessStatusItems : []"
     [selectedThemeItems]="selectedThemeItems"

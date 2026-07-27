@@ -25,6 +25,7 @@ export class FiltersItemsListComponent {
     @Input() selectedDatesItems: Item[];
     @Input() selectedAccessStatusItems: AccessStatusFilterItem[];
     @Input() selectedProducerItems: Item[];
+    @Input() selectedFileTypeItems: Item[];
     @Input() selectedThemeItems: Item[];
     @Input() hasSelectedItems: boolean;
 
@@ -52,6 +53,8 @@ export class FiltersItemsListComponent {
             return this.selectedThemeItems.some(value => value.value !== null);
         } else if (this.selectedProducerItems.length > 0) {
             return this.selectedProducerItems.some(value => value.value !== null);
+        } else if (this.selectedFileTypeItems.length > 0) {
+            return this.selectedFileTypeItems.some(value => value.value !== null);
         } else if (this.selectedDatesItems.length > 0) {
             return this.selectedDatesItems.some(value => value.value !== null);
         } else if (this.selectedAccessStatusItems.length > 0) {
@@ -67,6 +70,10 @@ export class FiltersItemsListComponent {
 
     deleteProducerFilter(producer: Item): void {
         this.filtersService.producerNamesFilter.remove(producer.name);
+    }
+
+    deleteFileTypeFilter(fileType: Item): void {
+        this.filtersService.fileTypesFilter.remove(fileType.value);
     }
 
     deleteDateFilter(date: Item): void {

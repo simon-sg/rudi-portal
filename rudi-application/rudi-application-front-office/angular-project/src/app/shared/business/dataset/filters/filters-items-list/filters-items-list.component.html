@@ -26,6 +26,19 @@
         </div>
       </div>
     }
+    <!-- FILE TYPE -->
+    @for (fileType of selectedFileTypeItems; track fileType) {
+      <div
+        class="button-filter-container">
+        <div class="button-filter-texte">
+          {{ fileType.name }}
+        </div>
+        <div class="button-filter-icon-container" (click)="deleteFileTypeFilter(fileType)">
+          <mat-icon aria-hidden="false" aria-label="close icon">close
+          </mat-icon>
+        </div>
+      </div>
+    }
     <!-- DATE -->
     @for (date of selectedDatesItems; track date) {
       <div
