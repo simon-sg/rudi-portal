@@ -27,6 +27,23 @@ $app-theme: mat.m2-define-light-theme((
 ));
 @include mat.all-component-themes($app-theme);
 
+// Thème sombre — couleurs seulement (typo/densité inchangées), basculé à l'exécution par la
+// classe `dark-theme` posée sur <html> par ThemeService. Mêmes palettes de marque que le thème
+// clair : seule la surface/le texte-sur-surface de Material change, cohérent avec §3 (les
+// couleurs de marque restent inchangées en mode sombre).
+$app-theme-dark: mat.m2-define-dark-theme((
+    color: (
+        primary: $app-primary,
+        accent: $app-accent,
+        warn: $app-warn
+    ),
+    typography: $open-sans-typography
+));
+
+.dark-theme {
+    @include mat.all-component-colors($app-theme-dark);
+}
+
 /**
  Custom material
  */

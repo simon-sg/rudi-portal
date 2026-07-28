@@ -1,0 +1,14 @@
+@if (theme$ | async; as theme) {
+  <button mat-icon-button
+    type="button"
+    class="theme-toggle-btn"
+    [attr.aria-label]="(theme === 'dark' ? 'header.themeToggle.switchToLight' : 'header.themeToggle.switchToDark') | translate"
+    [matTooltip]="(theme === 'dark' ? 'header.themeToggle.switchToLight' : 'header.themeToggle.switchToDark') | translate"
+    (click)="handleClickToggle()">
+    @if (theme === 'dark') {
+      <mat-icon fontIcon="light_mode" aria-hidden="true"></mat-icon>
+    } @else {
+      <mat-icon fontIcon="dark_mode" aria-hidden="true"></mat-icon>
+    }
+  </button>
+}

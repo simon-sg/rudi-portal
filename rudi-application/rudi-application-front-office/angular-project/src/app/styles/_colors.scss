@@ -50,4 +50,32 @@
     --3-texte-gris-fonc: var(--primary-text);
     --4-contours-blocs-menus: var(--blocks-and-menus-outline);
     --background-s-lection-active-tableau: var(--selected-table-row);
+
+    // Chrome applicatif (mode sombre) — nouvelles variables, pas d'usage existant à préserver
+    --app-background-color: #ffffff;
+    --surface-color: #ffffff;
+    --border-color: #d5d8de;
+}
+
+// Mode sombre — voir PLAN_PR_RUDI_MODE_SOMBRE.md §3 pour la liste des variables volontairement
+// NON inversées ici (--white/--black/--secondary-color/--banner-solid-color... utilisées comme
+// texte-sur-fond-coloré, les inverser casserait leur lisibilité).
+:root.dark-theme {
+    // Chrome applicatif
+    --app-background-color: #121316;
+    --surface-color: #1c1e22;
+    --border-color: #34383f;
+
+    // Texte de corps de page
+    --primary-text: #d6d8dd;
+    --secondary-text: #f2f3f5;
+    --primary-text-light: #9aa0ab;
+
+    // Bordures neutres
+    --blocks-and-menus-outline: #454a52;
+    --keywords-outline: #383c43;
+    --fake-line: #383c43;
+
+    // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3)
+    --primary-color: #6badd9;
 }
