@@ -52,13 +52,16 @@ public class PostIntegrationRequestTreatmentHandler extends AbstractIntegrationR
 	@Override
 	protected void treat(IntegrationRequestEntity integrationRequest, Metadata metadata)
 			throws DataverseAPIException, ApiGatewayApiException {
-		final String doi = datasetService.createDataset(metadata);
+		String doi = null;
 		try {
+			doi = datasetService.createDataset(metadata);
 			final Metadata metadataCreated = datasetService.getDataset(doi);
 			createApi(integrationRequest, metadataCreated);
-		} catch (final ApiGatewayApiException | RuntimeException e) {
-			log.error("On va supprimer le JDD qui vient d'être créé car une erreur est survenue", e);
-			datasetService.deleteDataset(doi);
+		} catch (final DataverseAPIException | ApiGatewayApiException | RuntimeException e) {
+			if (doi != null) {
+				log.error("On va supprimer le JDD qui vient d'être créé car une erreur est survenue", e);
+				datasetService.deleteDataset(doi);
+			}
 			throw e;
 		}
 	}
