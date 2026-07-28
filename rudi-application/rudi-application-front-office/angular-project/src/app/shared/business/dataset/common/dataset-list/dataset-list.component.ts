@@ -42,6 +42,7 @@ export class DatasetListComponent implements OnInit, OnDestroy {
     /** On peut sélectionner une carte dans la liste ? */
     @Input() isSelectable = false;
     @Input() accessStatusHiddenValues;
+    @Input() forceRowView = false;
     @Output() selectMetadata = new EventEmitter<Metadata>();
     @Output() dbSelectMetadata = new EventEmitter<Metadata>();
     @Output() metadataListTotal = new EventEmitter<number>();
@@ -112,6 +113,23 @@ export class DatasetListComponent implements OnInit, OnDestroy {
 
     get paginationControlsNgClass(): NgClassObject {
         return this.breakpointObserver.getNgClassFromMediaSize('pagination-spacing');
+    }
+
+    get containerNgClass(): NgClassObject {
+        if (this.forceRowView) {
+            return {
+                'data-set-container-sm': true,
+                'data-set-container-lg': false,
+                'data-set-container-xl': false,
+                'data-set-container-xxl': false
+            };
+        }
+        return {
+            'data-set-container-sm': this.mediaSize.isXs || this.mediaSize.isSm || this.mediaSize.isMd,
+            'data-set-container-lg': this.mediaSize.isLg,
+            'data-set-container-xl': this.mediaSize.isXl,
+            'data-set-container-xxl': this.mediaSize.isXxl
+        };
     }
 
     getThemeLabelFor(metadata: Metadata): string {

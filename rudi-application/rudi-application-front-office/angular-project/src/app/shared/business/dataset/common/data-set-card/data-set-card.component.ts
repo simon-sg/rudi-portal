@@ -26,6 +26,7 @@ export class DataSetCardComponent implements OnInit {
     @Input() metadata: Metadata;
     mediaSize: MediaSize;
     @Input() isSelectable = false;
+    @Input() forceRowView = false;
     isSelected = false;
     isSingleClick = true;
     @Output() selectMetadata = new EventEmitter<Metadata>();
@@ -69,7 +70,16 @@ export class DataSetCardComponent implements OnInit {
     }
 
     get ngClass(): NgClassObject {
-        const ngClassFromMediaSize: NgClassObject = this.breakpointObserver.getNgClassFromMediaSize('data-set-card');
+        const ngClassFromMediaSize: NgClassObject = this.forceRowView
+            ? {
+                'data-set-card-xs': false,
+                'data-set-card-sm': true,
+                'data-set-card-md': false,
+                'data-set-card-lg': false,
+                'data-set-card-xl': false,
+                'data-set-card-xxl': false
+            }
+            : this.breakpointObserver.getNgClassFromMediaSize('data-set-card');
         return {
             ...ngClassFromMediaSize,
             restricted: this.isRestricted,
