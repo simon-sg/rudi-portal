@@ -88,11 +88,11 @@ export class DataSetCardComponent implements OnInit {
     }
 
     get titleMaxLength(): number {
-        return 60;
+        return this.forceRowView ? Number.MAX_SAFE_INTEGER : 60;
     }
 
     get descriptionMaxLength(): number {
-        return 200;
+        return this.forceRowView ? Number.MAX_SAFE_INTEGER : 200;
     }
 
     get isRestricted(): boolean {
