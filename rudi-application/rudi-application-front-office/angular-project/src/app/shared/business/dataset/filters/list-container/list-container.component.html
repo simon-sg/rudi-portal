@@ -55,12 +55,23 @@
         }
       </div>
 
-      <!--Composant de tri-->
+      <!--Composant de tri + bascule vue cartes/lignes-->
       @if ((mediaSize.isXl || mediaSize.isLg || mediaSize.isXxl) && metadataListTotal) {
-        <app-order
-          [values]="orders"
-          >
-        </app-order>
+        <div class="d-flex align-items-center">
+          <button
+            type="button"
+            mat-flat-button
+            class="view-mode-toggle-button me-2"
+            [matTooltip]="(forceRowView ? 'viewModeBox.switchToCards' : 'viewModeBox.switchToRows') | translate"
+            [attr.aria-pressed]="forceRowView"
+            (click)="toggleRowView()">
+            <mat-icon aria-hidden="true">{{ forceRowView ? 'grid_view' : 'view_list' }}</mat-icon>
+          </button>
+          <app-order
+            [values]="orders"
+            >
+          </app-order>
+        </div>
       }
 
       <!--Ouverture des filtres en mode mobile-->
@@ -82,6 +93,7 @@
       [isSelectable]="isSelectable"
       [limit]="limit"
       [mediaSize]="mediaSize"
+      [forceRowView]="forceRowView"
       (metadataListTotal)="getMetadataListTotal($event)"
       (selectMetadata)="selectMetadata.emit($event)"
       (dbSelectMetadata)="dbSelectMetadata.emit($event)"

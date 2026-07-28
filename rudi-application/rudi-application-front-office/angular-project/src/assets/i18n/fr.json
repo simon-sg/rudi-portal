@@ -480,6 +480,10 @@
         "producer.organization_name": "Nom de producteur de A à Z",
         "-producer.organization_name": "Nom de producteur de Z à A"
     },
+    "viewModeBox": {
+        "switchToRows": "Afficher en liste",
+        "switchToCards": "Afficher en cartes"
+    },
     "donneesPersonnellesBox": {
         "donneesPersonnelles": "Données personnelles",
         "listPivot": "Données nécessaires à l'identification",

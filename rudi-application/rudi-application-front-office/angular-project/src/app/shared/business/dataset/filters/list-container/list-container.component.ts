@@ -2,6 +2,7 @@ import {AsyncPipe, NgClass} from '@angular/common';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {MatButton} from '@angular/material/button';
 import {MatIcon} from '@angular/material/icon';
+import {MatTooltip} from '@angular/material/tooltip';
 import {MatSidenav} from '@angular/material/sidenav';
 import {Router} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
@@ -47,6 +48,7 @@ const EMPTY_METADATA_LIST: MetadataList = {
         OrderComponent,
         MatButton,
         MatIcon,
+        MatTooltip,
         DatasetListComponent,
         AsyncPipe,
         TranslatePipe
@@ -72,6 +74,8 @@ export class ListContainerComponent implements OnInit, OnDestroy {
     @Output() selectMetadata = new EventEmitter<Metadata>();
     @Output() dbSelectMetadata = new EventEmitter<Metadata>();
     offset = 0;
+    /** Bascule manuelle carte/lignes, indépendante du responsive (mediaSize) */
+    forceRowView = false;
     // Indique si on affiche le loader pendant le chargement es JDD
     public isLoading = false;
     metadataList = EMPTY_METADATA_LIST;
@@ -121,6 +125,10 @@ export class ListContainerComponent implements OnInit, OnDestroy {
 
     openSidenav(): void {
         this.sidenavOpeningsService.openSidenav();
+    }
+
+    toggleRowView(): void {
+        this.forceRowView = !this.forceRowView;
     }
 
     ngOnDestroy(): void {
