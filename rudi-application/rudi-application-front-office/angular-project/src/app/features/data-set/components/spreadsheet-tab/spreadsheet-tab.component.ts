@@ -147,6 +147,7 @@ export class SpreadsheetTabComponent implements OnInit {
                 this.displayTableLoading = false;
                 this.displayTable = true;
                 this.workbook = workbook;
+                this.usesHeader = this.displayTableService.detecterEnTete(this.workbook);
                 this.displayTableData = this.displayTableService.convertToDisplayableData(this.workbook, this.usesHeader);
                 this.unFilteredRowData = this.displayTableData.rowData;
             },
