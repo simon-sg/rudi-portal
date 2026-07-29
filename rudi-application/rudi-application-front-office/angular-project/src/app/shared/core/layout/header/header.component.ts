@@ -17,6 +17,7 @@ import {SnackBarService} from '@core/services/snack-bar.service';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {Level} from '@shared/core/layout/notification-template/notification-template.component';
 import {CustomRouterlinkDirective} from '@shared/utils/directives/custom-routerlink-directive/custom-routerlink.directive';
+import {ThemeToggleComponent} from '@shared/core/layout/theme-toggle/theme-toggle.component';
 import {CustomizationDescription, KonsultService} from 'micro_service_modules/konsult/konsult-api';
 import {forkJoin, switchMap} from 'rxjs';
 
@@ -28,7 +29,8 @@ const DEFAULT_PICTO: Base64EncodedLogo = '/assets/images/logo_bleu_orange.svg';
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss'],
     imports: [RouterLink, CustomRouterlinkDirective, NgClass, NgTemplateOutlet, MatButton, MatMenuTrigger,
-        MatMiniFabAnchor, MatIcon, MatMiniFabButton, RouterLinkActive, MatMenu, MatMenuItem, TranslatePipe]
+        MatMiniFabAnchor, MatIcon, MatMiniFabButton, RouterLinkActive, MatMenu, MatMenuItem, TranslatePipe,
+        ThemeToggleComponent]
 })
 export class HeaderComponent implements OnInit {
 

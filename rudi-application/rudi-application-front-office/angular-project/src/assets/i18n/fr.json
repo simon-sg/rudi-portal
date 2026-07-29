@@ -268,6 +268,10 @@
             "myActivity": "Mon activité",
             "myNotifications": "Mes notifications",
             "mySelfdata": "Mes données personnelles"
+        },
+        "themeToggle": {
+            "switchToDark": "Passer en mode sombre",
+            "switchToLight": "Passer en mode clair"
         }
     },
     "footer": {

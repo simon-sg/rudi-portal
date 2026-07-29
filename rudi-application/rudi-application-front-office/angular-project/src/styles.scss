@@ -14,6 +14,9 @@
 
 html, body {
     height: 100%;
+    // Peint tout le canevas (pas seulement la boîte de .app-rudi) : le fond du <html> couvre toute
+    // la page quelle que soit sa hauteur réelle de contenu, y compris au-delà du premier viewport.
+    background-color: var(--app-background-color);
 }
 
 body {

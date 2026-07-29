@@ -50,4 +50,75 @@
     --3-texte-gris-fonc: var(--primary-text);
     --4-contours-blocs-menus: var(--blocks-and-menus-outline);
     --background-s-lection-active-tableau: var(--selected-table-row);
+
+    // Chrome applicatif (mode sombre) — nouvelles variables, pas d'usage existant à préserver
+    --app-background-color: #ffffff;
+    --header-background-color: #ffffff;
+    --surface-color: #ffffff;
+    --border-color: #d5d8de;
+    // Fond du bandeau de page (app-banner) — dupliquée de --banner-solid-color plutôt que réutilisée :
+    // --banner-solid-color sert aussi de texte clair sur bouton bleu ailleurs (voir §3.1 du plan),
+    // impossible à inverser sans casser ces boutons.
+    --banner-background-color: #e7e9ed;
+}
+
+// Mode sombre — voir PLAN_PR_RUDI_MODE_SOMBRE.md §3 pour la liste des variables volontairement
+// NON inversées ici (--white/--black/--secondary-color/--banner-solid-color... utilisées comme
+// texte-sur-fond-coloré, les inverser casserait leur lisibilité).
+//
+// Palette inspirée du mode sombre GitHub (3 paliers de gris-bleu très sombres, pas un simple gris
+// neutre plat) plutôt que la palette grise fixe du thème sombre Angular Material par défaut
+// (#303030/#424242, essayée d'abord — trop claire, plate, "moche"). mat.m2-define-dark-theme()
+// n'expose aucun paramètre pour lui substituer une palette de fond custom : les ~25 tokens de
+// couleur Material (mat-card, mat-dialog, mat-menu, mat-select...) sont réécrits explicitement
+// juste après dans _mat-theming.scss pour suivre cette même palette plutôt que le gris Material.
+:root.dark-theme {
+    // 3 paliers : canevas de page < carte/menu/dialogue < topbar (la plus sombre, comme GitHub).
+    // Éclaircis d'un cran par rapport au premier essai (retour Simon : trop sombre).
+    --app-background-color: #161b22;
+    --surface-color: #21262d;
+    --header-background-color: #0d1117;
+    --border-color: #3d444d;
+    // Fond du bandeau de page — même palier que --surface-color
+    --banner-background-color: #21262d;
+
+    // Texte de corps de page
+    --primary-text: #c9d1d9;
+    --secondary-text: #e6edf3;
+    --primary-text-light: #8b949e;
+
+    // Bordures neutres — un seul ton (comme GitHub), assez clair pour rester visible sur les 3
+    // paliers de fond ci-dessus.
+    --blocks-and-menus-outline: #3d444d;
+    --keywords-outline: #3d444d;
+    --fake-line: #3d444d;
+
+    // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
+    //
+    // BUG TROUVÉ ET CORRIGÉ ICI (2026-07-29) : la version précédente dérivait cette valeur via
+    // `color-mix(in oklch, var(--primary-color) X%, white)` À L'INTÉRIEUR MÊME de la règle
+    // `:root.dark-theme` qui redéfinit `--primary-color`. `:root` et `:root.dark-theme` ciblent le
+    // MÊME élément (<html>) — donc `var(--primary-color)` ici ne "regarde" pas la déclaration
+    // `:root` moins spécifique, il boucle sur la valeur en cours de résolution SUR CE MÊME
+    // ÉLÉMENT, ce qui est une référence cyclique au sens strict de la spec CSS Custom Properties.
+    // Résultat : la propriété entière devient invalide (valeur garantie-invalide), silencieusement
+    // — `getComputedStyle(html).getPropertyValue('--primary-color')` renvoyait une chaîne vide, et
+    // tout texte l'utilisant retombait sur une couleur héritée par défaut (gris Bootstrap
+    // #212529), pas sur une nuance pâle comme supposé. C'est la cause réelle des 3 allers-retours
+    // précédents où rien ne semblait changer, quel que soit le ratio ajusté : l'expression entière
+    // n'a jamais été valide en mode sombre. Vérifié par capture d'écran headless Chrome (CDP) avec
+    // `dark-theme` forcé + inspection de la valeur calculée réelle.
+    //
+    // Fix : couleur littérale dans color-mix() (pas de var() vers la même propriété) — plus de
+    // cycle possible. Contrepartie assumée : si `--primary-color` est personnalisée par un
+    // déploiement via overrideCssFile.css (customisation portail), cette version sombre ne suit
+    // plus cette personnalisation (elle reprend #004680, la valeur RUDI par défaut, quoi qu'il
+    // arrive) — mieux qu'une fonctionnalité qui ne marchait pas du tout. Non bloquant aujourd'hui :
+    // ce mécanisme n'est pas encore câblé sur cette branche (voir docs/bug-overrideCssFile.md).
+    // Ratio à 35% (garde un peu de la teinte de marque, pas un simple gris clair).
+    --primary-color: color-mix(in oklch, #004680 35%, white);
+    // Marine header (bouton "Se connecter"/"Mon compte", liens de nav du header) : même correctif,
+    // même raison. Cette variable n'est utilisée qu'en texte/contour dans header.component.scss
+    // (aucun usage en fond, vérifié), donc éclaircie plus fort sans tension de lisibilité opposée.
+    --rudi-header-primary-color: color-mix(in oklch, #002748 15%, white);
 }
