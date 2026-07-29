@@ -1,7 +1,6 @@
 import { NgClass } from '@angular/common';
 import {Component, Input, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {MatButton} from '@angular/material/button';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatOption} from '@angular/material/core';
 import {MatFormField, MatLabel} from '@angular/material/form-field';
@@ -29,7 +28,7 @@ const EMPTY_SEARCH = '';
     selector: 'app-spreadsheet-tab',
     templateUrl: './spreadsheet-tab.component.html',
     styleUrls: ['./spreadsheet-tab.component.scss'],
-    imports: [LoaderComponent, FormsModule, MatIcon, NgClass, MatButton, MatCheckbox, ErrorBoxComponent, SpreadsheetComponent, TranslatePipe, MatFormField, MatLabel, MatSelect, MatOption]
+    imports: [LoaderComponent, FormsModule, MatIcon, NgClass, MatCheckbox, ErrorBoxComponent, SpreadsheetComponent, TranslatePipe, MatFormField, MatLabel, MatSelect, MatOption]
 })
 export class SpreadsheetTabComponent implements OnInit {
 

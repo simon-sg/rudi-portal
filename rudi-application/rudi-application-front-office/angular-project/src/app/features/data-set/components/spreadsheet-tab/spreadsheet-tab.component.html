@@ -51,13 +51,12 @@
               </div>
             </form>
           </div>
-          <button mat-raised-button class="button btn-outline" (click)="switchHeader()">
-            <mat-checkbox
-              (click)="$event.preventDefault()"
-              [checked]="usesHeader">
-            </mat-checkbox>
+          <mat-checkbox
+            class="button btn-outline"
+            [checked]="usesHeader"
+            (change)="switchHeader()">
             {{'metaData.tabulatedDataTab.tableHeadingBtn'|translate}}
-          </button>
+          </mat-checkbox>
         </div>
       }
       @if (displayResults) {
