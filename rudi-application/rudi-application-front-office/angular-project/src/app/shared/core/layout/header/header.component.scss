@@ -205,7 +205,11 @@
 }
 
 .nav-link-global {
-    color: var(--primary-color);
+    // --rudi-header-primary-color (pas --primary-color) : cette dernière sert aussi de fond de
+    // bouton ailleurs dans l'app, ce qui plafonne à quel point elle peut s'éclaircir en mode sombre
+    // sans casser ce second usage. --rudi-header-primary-color n'est utilisée qu'en texte/contour
+    // dans ce fichier, donc éclaircie plus franchement pour une meilleure lisibilité du menu.
+    color: var(--rudi-header-primary-color);
     text-decoration: none;
     font-weight: 700;
     text-transform: uppercase;

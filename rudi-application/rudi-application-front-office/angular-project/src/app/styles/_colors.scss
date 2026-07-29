@@ -65,20 +65,28 @@
 // NON inversées ici (--white/--black/--secondary-color/--banner-solid-color... utilisées comme
 // texte-sur-fond-coloré, les inverser casserait leur lisibilité).
 :root.dark-theme {
-    // Chrome applicatif
-    --app-background-color: #121316;
-    --surface-color: #1c1e22;
-    --border-color: #34383f;
+    // Chrome applicatif — aligné sur la palette grise FIXE du thème sombre Angular Material
+    // (mat.m2-define-dark-theme n'expose aucun paramètre pour lui substituer une palette de fond
+    // custom : mat-card/mat-dialog/mat-menu/mat-select... resteraient gris Material quoi qu'on
+    // mette ici). Reprendre ces mêmes gris plutôt qu'une teinte plus sombre inventée évite l'effet
+    // de rustine (chrome custom très sombre à côté de composants Material plus clairs).
+    --app-background-color: #303030; // = palette M2 $dark-theme-background-palette / background
+    --surface-color: #424242; // = grey-800, palette M2 background / card, dialog
+    --border-color: rgba(255, 255, 255, 0.12); // = opacité des dividers Material en thème sombre
+    // Fond du bandeau de page — même palier que --surface-color, cohérence avec les surfaces Material
+    --banner-background-color: #424242;
 
     // Texte de corps de page
     --primary-text: #d6d8dd;
     --secondary-text: #f2f3f5;
     --primary-text-light: #9aa0ab;
 
-    // Bordures neutres
-    --blocks-and-menus-outline: #454a52;
-    --keywords-outline: #383c43;
-    --fake-line: #383c43;
+    // Bordures neutres — éclaircies par rapport à un premier essai : sur le gris Material
+    // --surface-color (#424242, plus clair qu'un fond quasi noir), une bordure trop proche en
+    // luminosité devient invisible.
+    --blocks-and-menus-outline: #6b7078;
+    --keywords-outline: #5c6169;
+    --fake-line: #5c6169;
 
     // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
     // Dérivé via color-mix() de la valeur EN COURS de --primary-color (pas une valeur codée en
@@ -86,11 +94,13 @@
     // portail), le mode sombre l'éclaircit au lieu de l'écraser — une règle `:root.dark-theme` a une
     // spécificité CSS plus forte qu'un `:root` simple, donc une valeur fixe ici gagnerait toujours
     // sur la personnalisation même si son fichier CSS est injecté après (voir mémoire projet).
-    --primary-color: color-mix(in srgb, var(--primary-color) 55%, white);
-    // Marine header (bouton "Se connecter"/"Mon compte") — 3 usages, tous en texte/contour sur
-    // --surface-color dans header.component.scss : même traitement, même raison.
-    --rudi-header-primary-color: color-mix(in srgb, var(--rudi-header-primary-color) 55%, white);
-
-    // Fond du bandeau de page
-    --banner-background-color: #20242b;
+    // Ratio à 45% (pas plus haut) : --primary-color sert aussi de fond de bouton/bandeau avec du
+    // texte blanc par-dessus ailleurs (ex. key-figures-section) — l'éclaircir davantage pour le
+    // texte casserait ce second usage (voir §3.3 du plan, tension assumée entre les deux rôles).
+    --primary-color: color-mix(in srgb, var(--primary-color) 45%, white);
+    // Marine header (bouton "Se connecter"/"Mon compte", liens de nav du header) : variable
+    // exclusivement utilisée en texte/contour dans header.component.scss (aucun usage en fond,
+    // vérifié) — pas de tension équivalente, peut être éclaircie beaucoup plus fort pour une bonne
+    // lisibilité sur --surface-color.
+    --rudi-header-primary-color: color-mix(in srgb, var(--rudi-header-primary-color) 25%, white);
 }
