@@ -54,11 +54,14 @@ public class OrganizationBeanServiceImpl implements OrganizationBeanService {
 			List<UUID> organizationsUuids = beans.map(OrganizationBean::getUuid).toList();
 
 			// Récupération du nombre de projets ayant pour owner une des organisations récupérées précédemment.
-			List<ProjectByOrganization> projectByOwners = projektHelper
-					.getNumberOfProjectsPerOwners(organizationsUuids);
-
-			List<ProjectByOrganization> projectByRelatedOrganization = projektHelper
-					.getNumberOfProjectsPerRelatedOrganization(organizationsUuids);
+			List<ProjectByOrganization> projectByOwners = new ArrayList<>();
+			List<ProjectByOrganization> projectByRelatedOrganization = new ArrayList<>();
+			try {
+				projectByOwners = projektHelper.getNumberOfProjectsPerOwners(organizationsUuids);
+				projectByRelatedOrganization = projektHelper.getNumberOfProjectsPerRelatedOrganization(organizationsUuids);
+			} catch (Exception e) {
+				log.error("Cannot get projects from Organizations", e);
+			}
 
 			// Récupération du nombre de JDD par producteur (organisations)
 			// indépendamment de la liste des organisations précédemment récupérées
@@ -138,12 +141,14 @@ public class OrganizationBeanServiceImpl implements OrganizationBeanService {
 			List<UUID> organizationsUuids = beans.map(OrganizationBean::getUuid).toList();
 
 			// Récupération du nombre de projets ayant pour owner une des organisations récupérées précédemment.
-			List<ProjectByOrganization> projectByOwners = projektHelper
-					.getNumberOfProjectsPerOwners(organizationsUuids);
-
-			// Récupération du nombre de projets ayant pour partenaire une des organisations récupérées précédemment.
-			List<ProjectByOrganization> projectByRelatedOrganization = projektHelper
-					.getNumberOfProjectsPerRelatedOrganization(organizationsUuids);
+			List<ProjectByOrganization> projectByOwners = new ArrayList<>();
+			List<ProjectByOrganization> projectByRelatedOrganization = new ArrayList<>();
+			try {
+				projectByOwners = projektHelper.getNumberOfProjectsPerOwners(organizationsUuids);
+				projectByRelatedOrganization = projektHelper.getNumberOfProjectsPerRelatedOrganization(organizationsUuids);
+			} catch (Exception e) {
+				log.error("Cannot get projects from Organizations", e);
+			}
 
 			// Récupération du nombre de JDD par producteur (organisations)
 			// indépendamment de la liste des organisations précédemment récupérées
