@@ -73,13 +73,14 @@
 // couleur Material (mat-card, mat-dialog, mat-menu, mat-select...) sont réécrits explicitement
 // juste après dans _mat-theming.scss pour suivre cette même palette plutôt que le gris Material.
 :root.dark-theme {
-    // 3 paliers : canevas de page < carte/menu/dialogue < topbar (la plus sombre, comme GitHub)
-    --app-background-color: #0d1117;
-    --surface-color: #161b22;
-    --header-background-color: #010409;
-    --border-color: #30363d;
+    // 3 paliers : canevas de page < carte/menu/dialogue < topbar (la plus sombre, comme GitHub).
+    // Éclaircis d'un cran par rapport au premier essai (retour Simon : trop sombre).
+    --app-background-color: #161b22;
+    --surface-color: #21262d;
+    --header-background-color: #0d1117;
+    --border-color: #3d444d;
     // Fond du bandeau de page — même palier que --surface-color
-    --banner-background-color: #161b22;
+    --banner-background-color: #21262d;
 
     // Texte de corps de page
     --primary-text: #c9d1d9;
@@ -88,9 +89,9 @@
 
     // Bordures neutres — un seul ton (comme GitHub), assez clair pour rester visible sur les 3
     // paliers de fond ci-dessus.
-    --blocks-and-menus-outline: #30363d;
-    --keywords-outline: #30363d;
-    --fake-line: #30363d;
+    --blocks-and-menus-outline: #3d444d;
+    --keywords-outline: #3d444d;
+    --fake-line: #3d444d;
 
     // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
     // Dérivé via color-mix() de la valeur EN COURS de --primary-color (pas une valeur codée en
