@@ -106,6 +106,12 @@ export class DatasetInformationsComponent {
         this.router.navigate(['/catalogue']);
     }
 
+    public filterOnKeywordAndGoToCatalog(keyword: string): void {
+        this.filtersService.deleteAllFilters();
+        this.filtersService.keywordsFilter.value = [keyword];
+        this.router.navigate(['/catalogue']);
+    }
+
     public hasManyOtherDatasets(): boolean {
         return this.totalOtherDatasets > this.maxDatasetDiplayed;
     }

@@ -9,6 +9,7 @@ import {Router, RouterLink} from '@angular/router';
 import {LanguageService} from '@core/i18n/language.service';
 import {BreakpointObserverService, MediaSize, NgClassObject} from '@core/services/breakpoint-observer.service';
 import {URIComponentCodec} from '@core/services/codecs/uri-component-codec';
+import {FiltersService} from '@core/services/filters.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
@@ -41,6 +42,7 @@ export class DataSetCardComponent implements OnInit {
         private readonly matIconRegistry: MatIconRegistry,
         private readonly domSanitizer: DomSanitizer,
         private readonly router: Router,
+        private readonly filtersService: FiltersService,
     ) {
         this.matIconRegistry.addSvgIcon(
             'key_icon_88_blue',
@@ -126,6 +128,20 @@ export class DataSetCardComponent implements OnInit {
         if (!this.isSelectable && this.metadata.global_id && this.metadata.resource_title) {
             this.router.navigate(['/catalogue/detail/' + this.metadata.global_id + '/' + this.uriComponentCodec.normalizeString(this.metadata.resource_title)]);
         }
+    }
+
+    filterOnThemeAndGoToCatalog(event: Event): void {
+        event.stopPropagation();
+        this.filtersService.deleteAllFilters();
+        this.filtersService.themesFilter.value = [this.metadata.theme];
+        this.router.navigate(['/catalogue']);
+    }
+
+    filterOnKeywordAndGoToCatalog(event: Event, keyword: string): void {
+        event.stopPropagation();
+        this.filtersService.deleteAllFilters();
+        this.filtersService.keywordsFilter.value = [keyword];
+        this.router.navigate(['/catalogue']);
     }
 
     /**

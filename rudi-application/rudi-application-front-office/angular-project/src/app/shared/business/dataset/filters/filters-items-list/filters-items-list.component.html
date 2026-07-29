@@ -13,6 +13,19 @@
         </div>
       </div>
     }
+    <!-- KEYWORD -->
+    @for (keyword of (filtersService.keywordsFilter.value$ | async); track keyword) {
+      <div
+        class="button-filter-container">
+        <div class="button-filter-texte">
+          {{ keyword }}
+        </div>
+        <div class="button-filter-icon-container" (click)="deleteKeywordFilter(keyword)">
+          <mat-icon aria-hidden="false" aria-label="close icon">close
+          </mat-icon>
+        </div>
+      </div>
+    }
     <!-- PRODUCER -->
     @for (producer of selectedProducerItems; track producer) {
       <div

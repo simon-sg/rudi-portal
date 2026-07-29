@@ -112,7 +112,8 @@ export class ListContainerComponent implements OnInit, OnDestroy {
             this.selectedAccessStatusItems?.length > 0 ||
             this.selectedProducerItems?.length > 0 ||
             this.selectedFileTypeItems?.length > 0 ||
-            this.selectedThemeItems?.length > 0
+            this.selectedThemeItems?.length > 0 ||
+            this.filtersService.keywordsFilter.active
         );
     }
 

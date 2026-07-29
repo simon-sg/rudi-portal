@@ -44,25 +44,32 @@
   <div class="d-flex d-table-cell keywords-row data-set-card-title-margin keyword-padding">
     <button
       [matTooltip]="themeLabel"
+      [attr.aria-label]="themeLabel"
       class="rudi-btn-sm rudi-btn-theme"
       mat-flat-button
-      tabindex="-1"
+      (click)="filterOnThemeAndGoToCatalog($event)"
       >
       <mat-icon [svgIcon]="themePicto"></mat-icon>
     </button>
     @if (forceRowView) {
       @for (keyword of metadata.keywords; track keyword) {
-        <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button tabindex="-1">{{ keyword }}</button>
+        <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button
+          [attr.aria-label]="keyword"
+          (click)="filterOnKeywordAndGoToCatalog($event, keyword)">{{ keyword }}</button>
       }
     } @else {
       @if (metadata.keywords.length <= 2) {
         @for (keyword of metadata.keywords | slice:0:metadata.keywords.length; track keyword) {
-          <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button tabindex="-1">{{ keyword }}</button>
+          <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button
+            [attr.aria-label]="keyword"
+            (click)="filterOnKeywordAndGoToCatalog($event, keyword)">{{ keyword }}</button>
         }
       }
       @if (metadata.keywords.length > 2) {
         @for (keyword of metadata.keywords | slice:0:1; track keyword) {
-          <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button tabindex="-1">{{ keyword }}</button>
+          <button class="rudi-btn-sm d-flex align-items-center" mat-flat-button
+            [attr.aria-label]="keyword"
+            (click)="filterOnKeywordAndGoToCatalog($event, keyword)">{{ keyword }}</button>
         }
         <button
           class="rudi-btn-sm d-flex align-items-center"
