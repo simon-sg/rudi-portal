@@ -3,7 +3,7 @@
 
 :host {
     display: flex;
-    background-color: var(--banner-solid-color);
+    background-color: var(--banner-background-color);
 }
 
 @mixin mobile-screen {

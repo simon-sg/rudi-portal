@@ -55,6 +55,10 @@
     --app-background-color: #ffffff;
     --surface-color: #ffffff;
     --border-color: #d5d8de;
+    // Fond du bandeau de page (app-banner) — dupliquée de --banner-solid-color plutôt que réutilisée :
+    // --banner-solid-color sert aussi de texte clair sur bouton bleu ailleurs (voir §3.1 du plan),
+    // impossible à inverser sans casser ces boutons.
+    --banner-background-color: #e7e9ed;
 }
 
 // Mode sombre — voir PLAN_PR_RUDI_MODE_SOMBRE.md §3 pour la liste des variables volontairement
@@ -76,6 +80,17 @@
     --keywords-outline: #383c43;
     --fake-line: #383c43;
 
-    // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3)
-    --primary-color: #6badd9;
+    // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
+    // Dérivé via color-mix() de la valeur EN COURS de --primary-color (pas une valeur codée en
+    // dur) : si un déploiement a personnalisé cette couleur via overrideCssFile.css (customisation
+    // portail), le mode sombre l'éclaircit au lieu de l'écraser — une règle `:root.dark-theme` a une
+    // spécificité CSS plus forte qu'un `:root` simple, donc une valeur fixe ici gagnerait toujours
+    // sur la personnalisation même si son fichier CSS est injecté après (voir mémoire projet).
+    --primary-color: color-mix(in srgb, var(--primary-color) 55%, white);
+    // Marine header (bouton "Se connecter"/"Mon compte") — 3 usages, tous en texte/contour sur
+    // --surface-color dans header.component.scss : même traitement, même raison.
+    --rudi-header-primary-color: color-mix(in srgb, var(--rudi-header-primary-color) 55%, white);
+
+    // Fond du bandeau de page
+    --banner-background-color: #20242b;
 }
