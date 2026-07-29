@@ -8,10 +8,10 @@ import {ColDef} from 'ag-grid-community';
 import {KonsultService} from 'micro_service_modules/konsult/konsult-api';
 import {Observable} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
-import {read, utils, WorkBook} from 'xlsx';
+import {read, utils, WorkBook, WorkSheet} from 'xlsx';
 import {KonsultMetierService} from '../konsult-metier.service';
 import {DisplayTableDataInterface} from './display-table-data.interface';
-import {readFile} from './display.function';
+import {detecterLigneEnTete, readFile} from './display.function';
 
 @Injectable({
     providedIn: 'root'
@@ -73,16 +73,7 @@ export class DisplayTableService {
      */
     convertToDisplayableData(workbook: WorkBook, withHeaders: boolean): DisplayTableDataInterface {
 
-        // Par défaut la première feuille de calcul s'appelle 'Sheet1'
-        // c'est le cas d'un fichier CSV importé qui ne possèdes pas de 'Workbook'
-        let sheetName = DisplayTableService.FIRST_SHEET_NAME;
-        if (workbook.Workbook != null) {
-            // Dans le cadre d'un fichier XLS la propriété Workbook est définie et il faut chercher le nom de la Sheet dedans
-            // On ne gère l'affichage que de la première Sheet
-            sheetName = workbook.Workbook.Sheets[0].name;
-        }
-
-        const worksheet = workbook.Sheets[sheetName];
+        const worksheet = this.feuillePrincipale(workbook);
 
         // L'option 'header' à la conversion de la worksheet en JSON permet de définir les en-têtes
         // si = null alors le contenu est parsé en supposant que la première ligne définit les entêtes
@@ -107,6 +98,30 @@ export class DisplayTableService {
             columnDefs,
             rowData: sheet
         } as DisplayTableDataInterface;
+    }
+
+    /**
+     * Détection heuristique d'une ligne d'en-tête, pour pré-cocher la case "en-têtes" à
+     * l'affichage initial d'un tableau (voir `detecterLigneEnTete` pour le détail de l'heuristique).
+     * @param workbook le workbook extrait d'un CSV ou XLS
+     */
+    detecterEnTete(workbook: WorkBook): boolean {
+        const worksheet = this.feuillePrincipale(workbook);
+        const lignes: unknown[][] = utils.sheet_to_json(worksheet, {header: 1});
+        return detecterLigneEnTete(lignes);
+    }
+
+    /**
+     * Résout la feuille de calcul principale d'un classeur : la seule feuille d'un CSV importé
+     * (nommée 'Sheet1' par SheetJS), ou la première feuille déclarée d'un fichier XLS.
+     * @private
+     */
+    private feuillePrincipale(workbook: WorkBook): WorkSheet {
+        let sheetName = DisplayTableService.FIRST_SHEET_NAME;
+        if (workbook.Workbook != null) {
+            sheetName = workbook.Workbook.Sheets[0].name;
+        }
+        return workbook.Sheets[sheetName];
     }
 
     /**
