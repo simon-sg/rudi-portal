@@ -7,7 +7,7 @@
     width: 100%;
     height: var(--app-header-height);
     padding: 0.5rem 1.3rem;
-    background-color: var(--surface-color);
+    background-color: var(--header-background-color);
     border-bottom: 1px solid var(--border-color);
 }
 
@@ -69,7 +69,7 @@
     &-mobile {
         --mat-fab-container-shape: 4px;
         --mat-fab-container-elevation-shadow: none !important;
-        --mat-fab-container-color: var(--surface-color) !important;
+        --mat-fab-container-color: var(--header-background-color) !important;
         border: 1px solid var(--mat-button-outlined-outline-color);
         width: 75px;
 
@@ -88,7 +88,7 @@
         white-space: nowrap;
         width: 125px;
         border-radius: 2px;
-        background-color: var(--surface-color);
+        background-color: var(--header-background-color);
         text-transform: uppercase;
         font-size: 12px;
         letter-spacing: .07em;
@@ -112,7 +112,7 @@
 
     /* Forme et fond type M17 */
     --mat-fab-container-shape: 4px;
-    --mat-fab-container-color: var(--surface-color) !important;
+    --mat-fab-container-color: var(--header-background-color) !important;
 
     /* Retirer l’ombre */
     --mat-fab-container-elevation-shadow: none !important;
@@ -140,7 +140,7 @@
 
 /* Cibler aussi la classe Material au cas où */
 .mat-mdc-mini-fab {
-    background: var(--surface-color) !important;
+    background: var(--header-background-color) !important;
     border-radius: 4px !important;
     box-shadow: none !important;
 
@@ -183,7 +183,7 @@
         justify-content: space-between;
         padding: 20px 0;
         height: 100%;
-        background-color: var(--white);
+        background-color: var(--header-background-color);
         border-top: 25px solid var(--primary-color);
         border-bottom: 25px solid var(--primary-color);
         animation: fadeIn 0.5s;

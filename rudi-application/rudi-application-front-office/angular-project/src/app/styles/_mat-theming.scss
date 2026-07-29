@@ -42,6 +42,43 @@ $app-theme-dark: mat.m2-define-dark-theme((
 
 .dark-theme {
     @include mat.all-component-colors($app-theme-dark);
+
+    // mat.all-component-colors() ci-dessus écrit des valeurs figées (le gris Material par défaut,
+    // #303030/#424242/#4a4a4a — pas des var()) : aucun paramètre public de m2-define-dark-theme()
+    // ne permet de lui substituer une palette de fond custom. On réécrit donc explicitement, après
+    // coup, chaque token de fond/surface pour qu'il suive notre palette (voir _colors.scss) plutôt
+    // que ce gris Material — sinon les composants Material (cartes, dialogues, menus...) tranchent
+    // visuellement sur le reste du chrome custom (header, page).
+    --mat-app-background-color: var(--app-background-color);
+    --mat-sidenav-content-background-color: var(--app-background-color);
+
+    --mat-autocomplete-background-color: var(--surface-color);
+    --mat-bottom-sheet-container-background-color: var(--surface-color);
+    --mat-button-filled-container-color: var(--surface-color);
+    --mat-button-protected-container-color: var(--surface-color);
+    --mat-button-toggle-background-color: var(--surface-color);
+    --mat-button-toggle-disabled-state-background-color: var(--surface-color);
+    --mat-button-toggle-legacy-disabled-state-background-color: var(--surface-color);
+    --mat-button-tonal-container-color: var(--surface-color);
+    --mat-card-elevated-container-color: var(--surface-color);
+    --mat-card-filled-container-color: var(--surface-color);
+    --mat-card-outlined-container-color: var(--surface-color);
+    --mat-datepicker-calendar-container-background-color: var(--surface-color);
+    --mat-dialog-container-color: var(--surface-color);
+    --mat-expansion-container-background-color: var(--surface-color);
+    --mat-fab-container-color: var(--surface-color);
+    --mat-fab-small-container-color: var(--surface-color);
+    --mat-form-field-filled-container-color: var(--surface-color);
+    --mat-menu-container-color: var(--surface-color);
+    --mat-paginator-container-background-color: var(--surface-color);
+    --mat-select-panel-background-color: var(--surface-color);
+    --mat-sidenav-container-background-color: var(--surface-color);
+    --mat-slide-toggle-handle-surface-color: var(--surface-color);
+    --mat-stepper-container-color: var(--surface-color);
+    --mat-table-background-color: var(--surface-color);
+    --mat-timepicker-container-background-color: var(--surface-color);
+    --mat-toolbar-container-background-color: var(--surface-color);
+    --mat-tree-container-background-color: var(--surface-color);
 }
 
 /**
@@ -175,7 +212,7 @@ button {
 }
 
 button.mat-menu-item {
-    background-color: white;
+    background-color: var(--surface-color);
 }
 
 button.mat-menu-item:hover {
@@ -267,7 +304,7 @@ button.mat-menu-item:hover {
 }
 
 ::ng-deep.mat-drawer-container {
-    background-color: var(--secondary-color);
+    background-color: var(--surface-color);
 }
 
 ::ng-deep.mat-radio-container, ::ng-deep.mat-radio-outer-circle, ::ng-deep.mat-radio-inner-circle {

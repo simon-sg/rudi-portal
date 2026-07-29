@@ -53,6 +53,7 @@
 
     // Chrome applicatif (mode sombre) — nouvelles variables, pas d'usage existant à préserver
     --app-background-color: #ffffff;
+    --header-background-color: #ffffff;
     --surface-color: #ffffff;
     --border-color: #d5d8de;
     // Fond du bandeau de page (app-banner) — dupliquée de --banner-solid-color plutôt que réutilisée :
@@ -64,29 +65,32 @@
 // Mode sombre — voir PLAN_PR_RUDI_MODE_SOMBRE.md §3 pour la liste des variables volontairement
 // NON inversées ici (--white/--black/--secondary-color/--banner-solid-color... utilisées comme
 // texte-sur-fond-coloré, les inverser casserait leur lisibilité).
+//
+// Palette inspirée du mode sombre GitHub (3 paliers de gris-bleu très sombres, pas un simple gris
+// neutre plat) plutôt que la palette grise fixe du thème sombre Angular Material par défaut
+// (#303030/#424242, essayée d'abord — trop claire, plate, "moche"). mat.m2-define-dark-theme()
+// n'expose aucun paramètre pour lui substituer une palette de fond custom : les ~25 tokens de
+// couleur Material (mat-card, mat-dialog, mat-menu, mat-select...) sont réécrits explicitement
+// juste après dans _mat-theming.scss pour suivre cette même palette plutôt que le gris Material.
 :root.dark-theme {
-    // Chrome applicatif — aligné sur la palette grise FIXE du thème sombre Angular Material
-    // (mat.m2-define-dark-theme n'expose aucun paramètre pour lui substituer une palette de fond
-    // custom : mat-card/mat-dialog/mat-menu/mat-select... resteraient gris Material quoi qu'on
-    // mette ici). Reprendre ces mêmes gris plutôt qu'une teinte plus sombre inventée évite l'effet
-    // de rustine (chrome custom très sombre à côté de composants Material plus clairs).
-    --app-background-color: #303030; // = palette M2 $dark-theme-background-palette / background
-    --surface-color: #424242; // = grey-800, palette M2 background / card, dialog
-    --border-color: rgba(255, 255, 255, 0.12); // = opacité des dividers Material en thème sombre
-    // Fond du bandeau de page — même palier que --surface-color, cohérence avec les surfaces Material
-    --banner-background-color: #424242;
+    // 3 paliers : canevas de page < carte/menu/dialogue < topbar (la plus sombre, comme GitHub)
+    --app-background-color: #0d1117;
+    --surface-color: #161b22;
+    --header-background-color: #010409;
+    --border-color: #30363d;
+    // Fond du bandeau de page — même palier que --surface-color
+    --banner-background-color: #161b22;
 
     // Texte de corps de page
-    --primary-text: #d6d8dd;
-    --secondary-text: #f2f3f5;
-    --primary-text-light: #9aa0ab;
+    --primary-text: #c9d1d9;
+    --secondary-text: #e6edf3;
+    --primary-text-light: #8b949e;
 
-    // Bordures neutres — éclaircies par rapport à un premier essai : sur le gris Material
-    // --surface-color (#424242, plus clair qu'un fond quasi noir), une bordure trop proche en
-    // luminosité devient invisible.
-    --blocks-and-menus-outline: #6b7078;
-    --keywords-outline: #5c6169;
-    --fake-line: #5c6169;
+    // Bordures neutres — un seul ton (comme GitHub), assez clair pour rester visible sur les 3
+    // paliers de fond ci-dessus.
+    --blocks-and-menus-outline: #30363d;
+    --keywords-outline: #30363d;
+    --fake-line: #30363d;
 
     // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
     // Dérivé via color-mix() de la valeur EN COURS de --primary-color (pas une valeur codée en
