@@ -94,21 +94,31 @@
     --fake-line: #3d444d;
 
     // Bleu de marque, éclairci pour rester lisible en texte comme en fond (voir §3.3).
-    // Dérivé via color-mix() de la valeur EN COURS de --primary-color (pas une valeur codée en
-    // dur) : si un déploiement a personnalisé cette couleur via overrideCssFile.css (customisation
-    // portail), le mode sombre l'éclaircit au lieu de l'écraser — une règle `:root.dark-theme` a une
-    // spécificité CSS plus forte qu'un `:root` simple, donc une valeur fixe ici gagnerait toujours
-    // sur la personnalisation même si son fichier CSS est injecté après (voir mémoire projet).
-    // Retour Simon : le mélange en srgb rendait un bleu-gris terne ("gris", pas "bleu clair") —
-    // mélanger en oklch (espace perceptuel) donne un résultat plus vif à luminosité égale, plutôt
-    // qu'un simple délavage vers le gris terne. Part de blanc augmentée (65%, était 55% en srgb)
-    // pour un texte nettement plus clair, tout en restant en-deçà de ce qui casserait la lisibilité
-    // du texte blanc quand --primary-color sert de fond de bouton/bandeau ailleurs (ex.
-    // key-figures-section — voir §3.3 du plan, tension assumée entre les deux rôles).
-    --primary-color: color-mix(in oklch, var(--primary-color) 35%, white);
-    // Marine header (bouton "Se connecter"/"Mon compte", liens de nav du header) : variable
-    // exclusivement utilisée en texte/contour dans header.component.scss (aucun usage en fond,
-    // vérifié) — pas de tension équivalente, peut être éclaircie beaucoup plus fort pour une bonne
-    // lisibilité sur --surface-color.
-    --rudi-header-primary-color: color-mix(in oklch, var(--rudi-header-primary-color) 15%, white);
+    //
+    // BUG TROUVÉ ET CORRIGÉ ICI (2026-07-29) : la version précédente dérivait cette valeur via
+    // `color-mix(in oklch, var(--primary-color) X%, white)` À L'INTÉRIEUR MÊME de la règle
+    // `:root.dark-theme` qui redéfinit `--primary-color`. `:root` et `:root.dark-theme` ciblent le
+    // MÊME élément (<html>) — donc `var(--primary-color)` ici ne "regarde" pas la déclaration
+    // `:root` moins spécifique, il boucle sur la valeur en cours de résolution SUR CE MÊME
+    // ÉLÉMENT, ce qui est une référence cyclique au sens strict de la spec CSS Custom Properties.
+    // Résultat : la propriété entière devient invalide (valeur garantie-invalide), silencieusement
+    // — `getComputedStyle(html).getPropertyValue('--primary-color')` renvoyait une chaîne vide, et
+    // tout texte l'utilisant retombait sur une couleur héritée par défaut (gris Bootstrap
+    // #212529), pas sur une nuance pâle comme supposé. C'est la cause réelle des 3 allers-retours
+    // précédents où rien ne semblait changer, quel que soit le ratio ajusté : l'expression entière
+    // n'a jamais été valide en mode sombre. Vérifié par capture d'écran headless Chrome (CDP) avec
+    // `dark-theme` forcé + inspection de la valeur calculée réelle.
+    //
+    // Fix : couleur littérale dans color-mix() (pas de var() vers la même propriété) — plus de
+    // cycle possible. Contrepartie assumée : si `--primary-color` est personnalisée par un
+    // déploiement via overrideCssFile.css (customisation portail), cette version sombre ne suit
+    // plus cette personnalisation (elle reprend #004680, la valeur RUDI par défaut, quoi qu'il
+    // arrive) — mieux qu'une fonctionnalité qui ne marchait pas du tout. Non bloquant aujourd'hui :
+    // ce mécanisme n'est pas encore câblé sur cette branche (voir docs/bug-overrideCssFile.md).
+    // Ratio à 35% (garde un peu de la teinte de marque, pas un simple gris clair).
+    --primary-color: color-mix(in oklch, #004680 35%, white);
+    // Marine header (bouton "Se connecter"/"Mon compte", liens de nav du header) : même correctif,
+    // même raison. Cette variable n'est utilisée qu'en texte/contour dans header.component.scss
+    // (aucun usage en fond, vérifié), donc éclaircie plus fort sans tension de lisibilité opposée.
+    --rudi-header-primary-color: color-mix(in oklch, #002748 15%, white);
 }
