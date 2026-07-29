@@ -1,3 +1,4 @@
+import {AsyncPipe} from '@angular/common';
 import {Component, Input} from '@angular/core';
 import {FiltersService} from '@core/services/filters.service';
 import {
@@ -17,6 +18,7 @@ import {TranslatePipe} from '@ngx-translate/core';
     templateUrl: './filters-items-list.component.html',
     styleUrl: './filters-items-list.component.scss',
     imports: [
+    AsyncPipe,
     MatIcon,
     TranslatePipe
 ],
@@ -48,7 +50,9 @@ export class FiltersItemsListComponent {
      * A ameliorer plus tard, si d'autres filtres se rajoutent
      */
     hasSelectedAllOtherFiltre(): boolean {
-        if (this.selectedThemeItems.length > 0) {
+        if (this.filtersService.keywordsFilter.active) {
+            return true;
+        } else if (this.selectedThemeItems.length > 0) {
             return this.selectedThemeItems.some(value => value.value !== null);
         } else if (this.selectedProducerItems.length > 0) {
             return this.selectedProducerItems.some(value => value.value !== null);
@@ -63,6 +67,10 @@ export class FiltersItemsListComponent {
 
     deleteThemeFilter(theme: Item): void {
         this.filtersService.themesFilter.remove(theme.value);
+    }
+
+    deleteKeywordFilter(keyword: string): void {
+        this.filtersService.keywordsFilter.remove(keyword);
     }
 
     deleteProducerFilter(producer: Item): void {

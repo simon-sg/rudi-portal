@@ -6,6 +6,7 @@ import {AccessStatusFilter} from './filters/access-status-filter';
 import {DatesFilter} from './filters/dates-filter';
 import {DEFAULT_VALUE as DEFAULT_ORDER_VALUE, OrderFilter} from './filters/order-filter';
 import {ProducerNamesFilter} from './filters/producer-names-filter';
+import {KeywordsFilter} from './filters/keywords-filter';
 import {SearchFilter} from './filters/search-filter';
 import {ThemesFilter} from './filters/themes-filter';
 
@@ -35,6 +36,7 @@ export class FiltersService {
     );
     readonly searchFilter = new SearchFilter(this, this.filters);
     readonly themesFilter = new ThemesFilter(this, this.filters);
+    readonly keywordsFilter = new KeywordsFilter(this, this.filters);
     readonly producerNamesFilter = new ProducerNamesFilter(this, this.filters);
     readonly datesFilter = new DatesFilter(this, this.filters);
     readonly orderFilter = new OrderFilter(this, this.filters);
@@ -43,6 +45,7 @@ export class FiltersService {
     private readonly childrenFilters = [
         this.searchFilter,
         this.themesFilter,
+        this.keywordsFilter,
         this.producerNamesFilter,
         this.datesFilter,
         this.orderFilter,

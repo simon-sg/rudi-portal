@@ -24,8 +24,10 @@
             <div class="d-flex d-table-cell keywords-row flex-wrap">
               @if (themeLabel) {
                 <button [matTooltip]="themeLabel"
+                  [attr.aria-label]="themeLabel"
                   class="rudi-btn-sm mb-2 rudi-btn-theme-detail"
-                  mat-flat-button>
+                  mat-flat-button
+                  (click)="filterOnTheSameThemeAndGoToCatalog()">
                   <mat-icon [svgIcon]="themePicto"></mat-icon>
                   {{themeLabel | uppercase}}
                 </button>
@@ -33,7 +35,9 @@
               @if (metadata.keywords.length > 0) {
                 @for (keyword of metadata.keywords; track keyword) {
                   <button class="rudi-btn-sm d-flex align-items-center mb-2"
-                  mat-flat-button>{{ keyword }}</button>
+                    [attr.aria-label]="keyword"
+                    mat-flat-button
+                    (click)="filterOnKeywordAndGoToCatalog(keyword)">{{ keyword }}</button>
                 }
               }
             </div>
