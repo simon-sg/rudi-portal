@@ -89,6 +89,15 @@ export class KonsultMetierService {
     }
 
     /**
+     * Cache des pages de résultats, par combinaison exacte de (filtres + accessStatusHiddenValues +
+     * offset + limite). Évite un appel réseau redondant quand on revient sur le catalogue (ex. bouton
+     * précédent depuis une fiche détail) alors que les filtres et la page n'ont pas changé. Mémorisé
+     * pour la durée de vie du service (un onglet navigateur), même stratégie que
+     * `allMetadatasMatchingFiltersCache` plus bas dans ce fichier.
+     */
+    private readonly searchMetadatasCache = new Map<string, Observable<MetadataList>>();
+
+    /**
      * Recuperation de la liste de metadata depuis le server
      */
     searchMetadatas(filters?: Filters, accessStatusHiddenValues?: AccessStatusFiltersType[], offset?: number, limit?: number): Observable<MetadataList> {
@@ -96,21 +105,28 @@ export class KonsultMetierService {
         if (MetadataUtils.isSelfdataHidden(accessStatusHiddenValues)) {
             accessStatus.gdprSensitive = false;
         }
-        return this.konsultService.searchMetadatas(
-            filters.search,
-            filters.themes,
-            filters.keywords,
-            filters.producerNames,
-            filters.dates.debut,
-            filters.dates.fin,
-            accessStatus.restrictedAcces,
-            accessStatus.gdprSensitive,
-            filters.globalIds,
-            filters.producerUuids,
-            offset,
-            limit,
-            filters.order,
-        );
+
+        const cacheKey = JSON.stringify({filters, accessStatusHiddenValues, offset, limit, accessStatus});
+        let cached$ = this.searchMetadatasCache.get(cacheKey);
+        if (!cached$) {
+            cached$ = this.konsultService.searchMetadatas(
+                filters.search,
+                filters.themes,
+                filters.keywords,
+                filters.producerNames,
+                filters.dates.debut,
+                filters.dates.fin,
+                accessStatus.restrictedAcces,
+                accessStatus.gdprSensitive,
+                filters.globalIds,
+                filters.producerUuids,
+                offset,
+                limit,
+                filters.order,
+            ).pipe(shareReplay(1));
+            this.searchMetadatasCache.set(cacheKey, cached$);
+        }
+        return cached$;
     }
 
     /**
