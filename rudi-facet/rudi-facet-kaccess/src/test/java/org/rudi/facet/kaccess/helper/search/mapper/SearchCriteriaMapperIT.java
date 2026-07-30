@@ -127,9 +127,9 @@ class SearchCriteriaMapperIT {
 
 	@ParameterizedTest
 	@CsvSource({
-			"09/09/2021,      (rudi_resource_title:09\\/09\\/2021) OR (rudi_abstract_text:09\\/09\\/2021) OR (rudi_resource_title:09\\/09\\/2021*) OR (rudi_abstract_text:09\\/09\\/2021*)", // one word with handled special characters
-			"31/08+,               (rudi_resource_title:31\\/08) OR (rudi_abstract_text:31\\/08) OR (rudi_resource_title:31\\/08*) OR (rudi_abstract_text:31\\/08*)", // one word with not handled special characters
-			"911992100 09/09/2021, (rudi_resource_title:911992100 09\\/09\\/2021) OR (rudi_abstract_text:911992100 09\\/09\\/2021) OR ((rudi_resource_title:911992100*) AND (rudi_resource_title:09\\/09\\/2021*)) OR ((rudi_abstract_text:911992100*) AND (rudi_abstract_text:09\\/09\\/2021*))", // two words with handled special characters
+			"09/09/2021,      (rudi_resource_title:09\\/09\\/2021) OR (rudi_abstract_text:09\\/09\\/2021) OR _text_:09\\/09\\/2021 OR (rudi_resource_title:09\\/09\\/2021*) OR (rudi_abstract_text:09\\/09\\/2021*) OR _text_:09\\/09\\/2021*", // one word with handled special characters
+			"31/08+,               (rudi_resource_title:31\\/08) OR (rudi_abstract_text:31\\/08) OR _text_:31\\/08 OR (rudi_resource_title:31\\/08*) OR (rudi_abstract_text:31\\/08*) OR _text_:31\\/08*", // one word with not handled special characters
+			"911992100 09/09/2021, (rudi_resource_title:911992100 09\\/09\\/2021) OR (rudi_abstract_text:911992100 09\\/09\\/2021) OR _text_:911992100 09\\/09\\/2021 OR ((rudi_resource_title:911992100*) AND (rudi_resource_title:09\\/09\\/2021*)) OR ((rudi_abstract_text:911992100*) AND (rudi_abstract_text:09\\/09\\/2021*)) OR (_text_:911992100* AND _text_:09\\/09\\/2021*)", // two words with handled special characters
 	})
 	void datasetSearchCriteriaToSearchParams_freeText(final String freeText, final String expectedQuery) {
 		final DatasetSearchCriteria datasetSearchCriteria = new DatasetSearchCriteria().freeText(freeText);
