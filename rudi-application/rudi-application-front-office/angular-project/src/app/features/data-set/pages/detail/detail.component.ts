@@ -20,7 +20,6 @@ import {IconRegistryService} from '@core/services/icon-registry.service';
 import {KonsultMetierService} from '@core/services/konsult-metier.service';
 import {KosMetierService} from '@core/services/kos-metier.service';
 import {LogService} from '@core/services/log.service';
-import {MAP_CONNECTOR_PARAMETERS_REQUIRED} from '@core/services/map/map-connector-required-parameters';
 import {MAP_PROTOCOLS_SUPPORTED} from '@core/services/map/map-protocols';
 import {PageTitleService} from '@core/services/page-title.service';
 import {PropertiesMetierService} from '@core/services/properties-metier.service';
@@ -35,7 +34,6 @@ import {DetailFunctions} from '@features/data-set/pages/detail/detail-functions'
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ProjectListComponent} from '@shared/business/projects/project-list/project-list.component';
 import {BannerButtonComponent} from '@shared/core/banner/banner-button/banner-button.component';
-import {ErrorBoxComponent} from '@shared/core/common/error-box/error-box.component';
 import {LoaderComponent} from '@shared/core/common/loader/loader.component';
 import {TabComponent} from '@shared/core/common/tab/tab.component';
 import {TabsComponent} from '@shared/core/common/tabs/tabs.component';
@@ -47,7 +45,7 @@ import {ALL_TYPES} from '@shared/models/title-icon-type';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
 import {ObservableUtils} from '@shared/utils/observable-utils';
 import saveAs from 'file-saver';
-import {ConnectorConnectorParameters, Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
+import {Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
 import * as mediaType from 'micro_service_modules/api-kaccess/model/media';
 import {Project} from 'micro_service_modules/projekt/projekt-model';
 import moment from 'moment';
@@ -89,6 +87,21 @@ export class DetailComponent implements OnInit {
     mediaToDisplayTable: Media;
     mediaToDisplayMap: Media;
     mapHasError: boolean = false;
+
+    /**
+     * Liste des médias éligibles à l'affichage tabulaire (CSV/Excel), pour le sélecteur de fichier
+     * de l'onglet « Données tabulaires ». Construite une seule fois au chargement du JDD (voir
+     * buildTableMediaCandidates), pas dans le getter isSpreadsheetDisplayed (appelé à chaque cycle
+     * de détection de changements par le template : il ne doit pas avoir d'effet de bord).
+     */
+    tableMediaCandidates: MediaFile[] = [];
+
+    /**
+     * Liste des médias éligibles à l'affichage cartographique (GeoJSON ou protocole WMS/WFS/WMTS),
+     * pour le sélecteur de fichier de l'onglet « Carte ». Construite une seule fois au chargement du
+     * JDD (voir buildMapMediaCandidates), pas dans le getter isMapDisplayed.
+     */
+    mapMediaCandidates: Media[] = [];
 
     /**
      * Liste des médias éligibles à l'affichage tabulaire (CSV/Excel), pour le sélecteur de fichier
