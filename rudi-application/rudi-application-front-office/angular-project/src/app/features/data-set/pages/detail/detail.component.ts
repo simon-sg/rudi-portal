@@ -45,7 +45,7 @@ import {ALL_TYPES} from '@shared/models/title-icon-type';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
 import {ObservableUtils} from '@shared/utils/observable-utils';
 import saveAs from 'file-saver';
-import {Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
+import {ConnectorConnectorParameters, Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
 import * as mediaType from 'micro_service_modules/api-kaccess/model/media';
 import {Project} from 'micro_service_modules/projekt/projekt-model';
 import moment from 'moment';
