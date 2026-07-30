@@ -45,7 +45,6 @@ export class SearchOrganizationsService {
     private subscription: Subscription;
     private readonly currentRequest: SearchOrganisationsRequest;
     private allOrganizations: OrganizationBean[];
-    private lastSearchName: string;
 
     constructor(
         private readonly organizationService: OrganizationService,
@@ -66,7 +65,6 @@ export class SearchOrganizationsService {
         this.projectsCountLoading$ = new BehaviorSubject(false);
         this.searchName$ = new BehaviorSubject('');
         this.allOrganizations = [];
-        this.lastSearchName = '';
     }
 
     initSubscriptions(isPersonalSpace: boolean = false, itemPerPage?: number) {
@@ -76,6 +74,9 @@ export class SearchOrganizationsService {
         if (itemPerPage) {
             this.currentRequest.itemPerPage = itemPerPage;
         }
+        // Reset the client-side cache: avoids leaking a previous page's (or personal-space vs
+        // public) organization list into this new subscription.
+        this.allOrganizations = [];
         this.subscription = new Subscription();
         this.subscription.add(this.initCurrentSortOrderSubscription());
         this.subscription.add(this.initCurrentPageSubscription());
@@ -125,7 +126,10 @@ export class SearchOrganizationsService {
     }
 
     private searchOrganisationBeans(searchRequest: SearchOrganisationsRequest): void {
-        if (this.isClientSideOrder(searchRequest.sortOrder)) {
+        // Le endpoint ne fait qu'une égalité stricte (ou LIKE si l'appelant fournit lui-même un '*')
+        // sur le seul champ "name" : impropre à une recherche texte libre sur nom + description.
+        // Toute recherche texte passe donc côté client, comme les tris sur compteurs calculés.
+        if (this.isClientSideOrder(searchRequest.sortOrder) || !!searchRequest.name) {
             this.searchAllOrganisationsClientSide(searchRequest);
         } else {
             this.searchOrganisationsServerSide(searchRequest);
@@ -167,19 +171,20 @@ export class SearchOrganizationsService {
     }
 
     private searchAllOrganisationsClientSide(searchRequest: SearchOrganisationsRequest): void {
-        const needsFullFetch = !this.allOrganizations.length || this.lastSearchName !== (searchRequest.name || '');
-
-        if (!needsFullFetch) {
+        if (this.allOrganizations.length) {
             this.applyClientSidePagination(searchRequest);
             return;
         }
 
         this.isLoadingCatalogue$.next(true);
 
+        // On ne transmet jamais "name" ici : le filtrage texte (nom + description) se fait
+        // entièrement côté client dans applyClientSidePagination(). Le reste des critères réels
+        // (uuids, exclusions, actif) est conservé.
         const obs = searchRequest.isPersonalSpace
             ? this.organizationService.searchMyOrganizationBeans(
                 searchRequest.uuids,
-                searchRequest.name,
+                undefined,
                 searchRequest.full ?? true,
                 searchRequest.active,
                 0,
@@ -187,7 +192,7 @@ export class SearchOrganizationsService {
                 undefined
             )
             : this.organizationService.searchPublicOrganizationsBeans(
-                searchRequest.name,
+                undefined,
                 searchRequest.uuids,
                 searchRequest.excludedOrganizationUuids,
                 searchRequest.full ?? true,
@@ -199,9 +204,7 @@ export class SearchOrganizationsService {
 
         obs.subscribe({
             next: (data: PagedOrganizationBeanList) => {
-                const allOrgs = data.elements || [];
-                this.allOrganizations = allOrgs;
-                this.lastSearchName = searchRequest.name || '';
+                this.allOrganizations = data.elements || [];
                 this.applyClientSidePagination(searchRequest);
             },
             error: () => {
@@ -211,7 +214,8 @@ export class SearchOrganizationsService {
     }
 
     private applyClientSidePagination(searchRequest: SearchOrganisationsRequest): void {
-        const sortedOrgs = this.sortClientSide(this.allOrganizations, searchRequest.sortOrder);
+        const filteredOrgs = this.filterClientSide(this.allOrganizations, searchRequest.name);
+        const sortedOrgs = this.sortClientSide(filteredOrgs, searchRequest.sortOrder);
         const total = sortedOrgs.length;
         const offset = searchRequest.offset || 0;
         const limit = searchRequest.itemPerPage || searchDefaultPageSize;
@@ -222,9 +226,26 @@ export class SearchOrganizationsService {
         this.isLoadingCatalogue$.next(false);
     }
 
+    private filterClientSide(orgs: OrganizationBean[], searchTerm: string): OrganizationBean[] {
+        if (!searchTerm) {
+            return orgs;
+        }
+        const term = searchTerm.toLowerCase();
+        return orgs.filter((org) =>
+            (org.name ?? '').toLowerCase().includes(term)
+            || (org.description ?? '').toLowerCase().includes(term)
+        );
+    }
+
     private sortClientSide(orgs: OrganizationBean[], order: Order): OrganizationBean[] {
         const sorted = [...orgs];
         switch (order) {
+            case 'name':
+                sorted.sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+                break;
+            case '-name':
+                sorted.sort((a, b) => (b.name ?? '').localeCompare(a.name ?? ''));
+                break;
             case 'datasetCount':
                 sorted.sort((a, b) => (a.datasetCount ?? 0) - (b.datasetCount ?? 0));
                 break;
