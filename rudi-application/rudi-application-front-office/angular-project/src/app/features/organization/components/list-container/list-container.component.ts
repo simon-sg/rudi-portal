@@ -1,6 +1,5 @@
 import {AsyncPipe} from '@angular/common';
 import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {MatToolbar} from '@angular/material/toolbar';
 import {MediaSize} from '@core/services/breakpoint-observer.service';
 import {OrganizationOrderComponent} from '@features/organization/components/order/organization-order.component';
 import {Order} from '@features/organization/components/order/type';
@@ -10,6 +9,7 @@ import {
     searchDefaultPageSize,
     SearchOrganizationsService
 } from '@shared/business/organisation/list-organization-card/search-organizations.service';
+import {SearchBoxComponent} from '@shared/core/search/search-box/search-box.component';
 import {OrganizationBean} from 'micro_service_modules/strukture/api-strukture';
 import {Observable} from 'rxjs';
 
@@ -18,7 +18,7 @@ import {Observable} from 'rxjs';
     templateUrl: './list-container.component.html',
     styleUrls: ['./list-container.component.scss'],
     imports: [
-        MatToolbar,
+        SearchBoxComponent,
         OrganizationOrderComponent,
         ListOrganizationCardComponent,
         AsyncPipe,
@@ -50,7 +50,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
     }
 
     onChangesSearchTerms($event: string): void {
-        throw new Error('Search not implemented yet');
+        this.searchOrganizationsService.searchName$.next($event);
     }
 
     onOrderChange($event: Order): void {

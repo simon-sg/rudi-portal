@@ -1,9 +1,10 @@
 <div class="container-fluid">
-  @if (mediaSize.isLg || mediaSize.isXl || mediaSize.isXxl) {
-    <mat-toolbar
-      class="rudi-filters-toolbar">
-    </mat-toolbar>
-  }
+  <app-search-box
+    [mediaSize]="mediaSize"
+    [libelle]="'searchbox.rechercherOrganisation'"
+    (searchTermsEmitter)="onChangesSearchTerms($event)"
+    class="d-flex justify-content-center w-100">
+  </app-search-box>
 
   @if (organizations$ | async; as organizations) {
     <div class="d-flex py-3 justify-content-between">
