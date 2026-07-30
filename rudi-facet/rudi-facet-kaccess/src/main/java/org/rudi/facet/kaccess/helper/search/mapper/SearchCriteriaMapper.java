@@ -55,6 +55,17 @@ public class SearchCriteriaMapper extends DatasetSearchCriteriaMapper {
 
 	private static final FieldSpec[] FREE_TEXT_FIELDS = { RudiMetadataField.RESOURCE_TITLE,
 			RudiMetadataField.SYNOPSIS_TEXT };
+
+	/**
+	 * Champ catch-all Solr alimenté par copyField (schema.xml) pour quasiment tous les champs
+	 * rudi_*, y compris le résumé complet (summary), le thème, les mots-clés et le nom du
+	 * producteur — contrairement à {@link #FREE_TEXT_FIELDS} qui ne couvre que titre et synopsis.
+	 * Permet d'élargir la recherche texte libre sans réindexation ni modification du schéma Solr.
+	 * Limite connue : ce champ est de type text_general (pas text_en comme les champs ci-dessus),
+	 * donc sans ASCIIFoldingFilter — insensible à la casse mais PAS aux accents.
+	 */
+	private static final String CATCH_ALL_FIELD = "_text_";
+
 	private static final String SCORE_DESC_ORDER = "-" + DATAVERSE_SCORE_PROPERTY;
 
 	private final DateTimeMapper dateTimeMapper;
@@ -101,8 +112,10 @@ public class SearchCriteriaMapper extends DatasetSearchCriteriaMapper {
 		final var freeText = datasetSearchCriteria.getFreeText();
 
 		if (StringUtils.isNotBlank(freeText)) {
-			// recherche texte libre : on cherche sa présence dans le titre OU le résumé court (synopsis)
+			// recherche texte libre : titre et synopsis (FREE_TEXT_FIELDS), ainsi que résumé
+			// complet, thème, mots-clés et producteur via le champ catch-all CATCH_ALL_FIELD
 			String sanitizedFreeText = sanitize(freeText);
+			boolean advancedQuery = isAdvancedQuery(sanitizedFreeText);
 
 			FilterQuery query = new FilterQuery();
 
@@ -112,9 +125,10 @@ public class SearchCriteriaMapper extends DatasetSearchCriteriaMapper {
 				fieldQuery.add(field, sanitizedFreeText);
 				query.add(fieldQuery.joinWithAnd());
 			}
+			query.add(CATCH_ALL_FIELD + ":" + escapeForSolr(sanitizedFreeText));
 
 			// si la recherche initial contient des * ou des quotes on ne fait pas de recherche par portion de mot
-			if (!isAdvancedQuery(sanitizedFreeText)) {
+			if (!advancedQuery) {
 				// on ajoute les termes avec une étoile au bout pour chercher les portions de mots
 				final String[] terms = sanitizedFreeText.split(" ");
 				for (final FieldSpec field : FREE_TEXT_FIELDS) {
@@ -124,6 +138,12 @@ public class SearchCriteriaMapper extends DatasetSearchCriteriaMapper {
 					}
 					query.add(fieldQuery.joinWithAnd());
 				}
+
+				FilterQuery catchAllWildcardQuery = new FilterQuery();
+				for (final String term : terms) {
+					catchAllWildcardQuery.add(CATCH_ALL_FIELD + ":" + escapeForSolr(term) + "*");
+				}
+				query.add(catchAllWildcardQuery.joinWithAnd());
 			}
 
 			return query.joinWithOr();
@@ -132,6 +152,17 @@ public class SearchCriteriaMapper extends DatasetSearchCriteriaMapper {
 
 		// q est obligatoire dans la requete solr
 		return FilterQuery.ANY_VALUE;
+	}
+
+	/**
+	 * Échappement Solr minimal pour une valeur ciblant directement {@link #CATCH_ALL_FIELD} (pas de
+	 * {@link FieldSpec}, donc pas d'{@code ItemBuilder} disponible pour le faire). Après
+	 * {@link #sanitize}, seuls "-" et "/" peuvent encore apparaître parmi les caractères spéciaux
+	 * Lucene/Solr (cf. {@code ItemBuilder.SPECIAL_CHARACTERS}).
+	 */
+	@Nonnull
+	private String escapeForSolr(String value) {
+		return value.replace("-", "\\-").replace("/", "\\/");
 	}
 
 	@Nonnull
