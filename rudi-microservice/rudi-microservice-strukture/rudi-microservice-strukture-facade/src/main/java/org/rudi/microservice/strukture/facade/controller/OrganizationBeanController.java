@@ -64,7 +64,7 @@ public class OrganizationBeanController implements OrganizationBeansApi, PublicO
 				.active(active)
 				.uuids(uuids)
 				.excludeOrganizationUuids(excludedOrganizationUuids)
-				.loadAllInformations(full)
+				.loadAllInformations(full != null ? full : true)
 				.build();
 		Page<OrganizationBean> organizationBeans = organizationBeanService.searchPublicOrganizationBeans(criteria, pageable);
 		return ResponseEntity.ok(new PagedOrganizationBeanList().elements(organizationBeans.getContent()).total(organizationBeans.getTotalElements()));
@@ -73,7 +73,7 @@ public class OrganizationBeanController implements OrganizationBeansApi, PublicO
 	@Override
 	public ResponseEntity<PagedOrganizationBeanList> searchMyOrganizationBeans(List<UUID> uuids, String name, Boolean full, Boolean active, Integer offset, Integer limit, String order) throws Exception {
 		Pageable pageable = utilPageable.getPageable(offset, limit, order);
-		OrganizationSearchCriteria criteria = OrganizationSearchCriteria.builder().uuids(uuids).name(name).loadAllInformations(Boolean.TRUE.equals(full)).active(active).build();
+		OrganizationSearchCriteria criteria = OrganizationSearchCriteria.builder().uuids(uuids).name(name).loadAllInformations(full != null ? full : true).active(active).build();
 		Page<OrganizationBean> organizationBeans = organizationBeanService.searchMyOrganizationBeans(criteria, pageable);
 		return ResponseEntity.ok(new PagedOrganizationBeanList().elements(organizationBeans.getContent()).total(organizationBeans.getTotalElements()));
 	}
