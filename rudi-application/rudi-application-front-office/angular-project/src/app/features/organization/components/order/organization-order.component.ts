@@ -11,6 +11,10 @@ const LIST_ORDER: OrderItem[] = [
     {libelle: 'sortBox.-producer.organization_name', order: '-name'},
     {libelle: 'sortBox.dataset_dates.updated', order: 'openingDate'},
     {libelle: 'sortBox.-dataset_dates.updated', order: '-openingDate'},
+    {libelle: 'sortBox.datasetCount', order: 'datasetCount'},
+    {libelle: 'sortBox.-datasetCount', order: '-datasetCount'},
+    {libelle: 'sortBox.projectCount', order: 'projectCount'},
+    {libelle: 'sortBox.-projectCount', order: '-projectCount'},
 ];
 
 @Component({

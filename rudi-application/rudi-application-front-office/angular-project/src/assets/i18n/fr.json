@@ -482,7 +482,11 @@
         "dataset_dates.created": "Le plus ancien",
         "-dataset_dates.created": "Le plus récent",
         "producer.organization_name": "Nom de producteur de A à Z",
-        "-producer.organization_name": "Nom de producteur de Z à A"
+        "-producer.organization_name": "Nom de producteur de Z à A",
+        "datasetCount": "Nombre de jeux de données (croissant)",
+        "-datasetCount": "Nombre de jeux de données (décroissant)",
+        "projectCount": "Nombre de réutilisations (croissant)",
+        "-projectCount": "Nombre de réutilisations (décroissant)"
     },
     "viewModeBox": {
         "switchToRows": "Afficher en liste",
