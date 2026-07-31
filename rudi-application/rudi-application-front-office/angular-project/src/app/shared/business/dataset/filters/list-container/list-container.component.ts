@@ -7,7 +7,7 @@ import {Router} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {FiltersService} from '@core/services/filters.service';
 import {OrderValue} from '@core/services/filters/order-filter';
-import {KonsultMetierService, MAX_RESULTS_PER_PAGE} from '@core/services/konsult-metier.service';
+import {KonsultMetierService, MAX_RESULTS_PER_PAGE, ProducerCount} from '@core/services/konsult-metier.service';
 import {SidenavOpeningsService} from '@core/services/sidenav-openings.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
 import {TranslatePipe, TranslateService} from '@ngx-translate/core';
@@ -78,7 +78,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
     searche$: Observable<string>;
     metadataListTotal: number;
     private filtersServiceSubscription?: Subscription;
-    producerNames: string[];
+    producerNames: ProducerCount[];
     private readonly isDestroyed$: Subject<void> = new Subject<void>();
     selectedDatesItems: Item[] = [];
     selectedThemeItems: Item[] = [];
@@ -128,7 +128,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
         this.sidenavOpeningsService.sideNavOpening$.pipe(takeUntil(this.isDestroyed$)).subscribe(() => {
             this.sidenav?.open();
         });
-        this.konsultMetierService.getProducerNames().subscribe(
+        this.konsultMetierService.getProducerNamesWithCounts().subscribe(
             producerNames => this.producerNames = producerNames
         );
         this.filtersServiceSubscription = this.filtersService.searchFilter.value$.subscribe();

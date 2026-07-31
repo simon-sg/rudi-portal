@@ -1,6 +1,7 @@
-import {Component} from '@angular/core';
+import {Component, Input} from '@angular/core';
 import {FiltersService} from '@core/services/filters.service';
 import {ArrayFilter} from '@core/services/filters/array-filter';
+import {ProducerCount} from '@core/services/konsult-metier.service';
 import {ArrayFilterFormComponent} from '@shared/business/dataset/filters/filter-forms/array-filter-form.component';
 import {Item} from '@shared/business/dataset/filters/filter-forms/item';
 
@@ -15,12 +16,20 @@ import {TranslatePipe} from '@ngx-translate/core';
     styleUrls: ['./producer-names-filter-form.component.scss'],
     imports: [FormsModule, ReactiveFormsModule, MatCheckbox, MatButton, TranslatePipe]
 })
-export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<string> {
+export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<ProducerCount> {
+    counts: Record<string, number> = {};
 
     constructor(
         protected readonly filtersService: FiltersService
     ) {
         super(filtersService);
+    }
+
+    @Input() set values(values: ProducerCount[] | undefined) {
+        if (values) {
+            this.counts = Object.fromEntries(values.map(pc => [pc.name, pc.count]));
+        }
+        super.values = values;
     }
 
     get formArrayName(): string {
@@ -31,10 +40,10 @@ export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<s
         return 'producer';
     }
 
-    protected getItemFromValue(value: string): Item {
+    protected getItemFromValue(value: ProducerCount): Item {
         return {
-            name: value,
-            value
+            name: value.name,
+            value: value.name
         };
     }
 
