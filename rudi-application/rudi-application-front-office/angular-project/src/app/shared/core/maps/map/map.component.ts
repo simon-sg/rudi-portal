@@ -432,6 +432,10 @@ export class MapComponent implements AfterViewInit, OnInit {
                         next: (baseLayer: BaseLayer) => {
                             this.map.getLayers().push(baseLayer);
                             this.addFeatureInteraction(baseLayer);
+                            // Sans ce render() explicite, une couche ajoutée après le chargement
+                            // asynchrone du GeoJSON pouvait rester invisible à l'écran tant qu'aucun
+                            // pan/zoom ne forçait un repaint du canvas OpenLayers.
+                            this.map.render();
                         }
                     });
                 }
@@ -439,6 +443,9 @@ export class MapComponent implements AfterViewInit, OnInit {
 
             if (layer != null) {
                 this.map.getLayers().push(layer);
+                // Voir le commentaire équivalent ci-dessus (branche GeoJSON) : même correctif pour
+                // les couches WMS/WMTS/WFS, ajoutées de façon synchrone.
+                this.map.render();
             }
         }
 
