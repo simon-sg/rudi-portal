@@ -19,6 +19,8 @@ import {TranslatePipe} from '@ngx-translate/core';
 export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<ProducerCount> {
     counts: Record<string, number> = {};
 
+    searchText = '';
+
     constructor(
         protected readonly filtersService: FiltersService
     ) {
@@ -30,6 +32,17 @@ export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<P
             this.counts = Object.fromEntries(values.map(pc => [pc.name, pc.count]));
         }
         super.values = values;
+    }
+
+    get filteredItems(): {item: Item, index: number}[] {
+        const search = this.normalize(this.searchText);
+        return this.items
+            .map((item, index) => ({item, index}))
+            .filter(({item}) => this.normalize(item.name).includes(search));
+    }
+
+    private normalize(value: string): string {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     }
 
     get formArrayName(): string {

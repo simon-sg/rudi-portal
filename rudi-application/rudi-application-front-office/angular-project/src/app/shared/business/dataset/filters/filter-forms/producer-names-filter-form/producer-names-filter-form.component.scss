@@ -1,3 +1,20 @@
 @use "app/styles/common-style";
 
+.filter-search-input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    border: 1px solid var(--blocks-and-menus-outline);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--primary-text);
+
+    &::placeholder {
+        color: var(--primary-text-light);
+    }
+
+    &:focus {
+        outline: var(--focus) solid 1px;
+    }
+}
 
