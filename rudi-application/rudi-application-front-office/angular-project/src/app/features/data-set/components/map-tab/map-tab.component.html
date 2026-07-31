@@ -34,18 +34,22 @@
                 [disabled]="layerState.hasError"
                 (change)="toggleLayerVisibility(layerState.media.media_id)"
                 >
-                <div class="map-layer-texts">
-                  <span class="map-layer-label">
-                    @if (layerState.color) {
-                      <span class="map-layer-color-dot" [style.background-color]="layerState.color"></span>
-                    }
-                    <span class="map-layer-label-text">{{ getLayerLabel(layerState.media) }}</span>
-                  </span>
-                  @if (getLayerTechnicalName(layerState.media); as technicalName) {
-                    <span class="map-layer-technical-name">{{ technicalName }}</span>
-                  }
-                </div>
               </mat-checkbox>
+              <div
+                class="map-layer-texts"
+                [class.disabled]="layerState.hasError"
+                (click)="!layerState.hasError && toggleLayerVisibility(layerState.media.media_id)"
+                >
+                <span class="map-layer-label">
+                  @if (layerState.color) {
+                    <span class="map-layer-color-dot" [style.background-color]="layerState.color"></span>
+                  }
+                  <span class="map-layer-label-text">{{ getLayerLabel(layerState.media) }}</span>
+                </span>
+                @if (getLayerTechnicalName(layerState.media); as technicalName) {
+                  <span class="map-layer-technical-name">{{ technicalName }}</span>
+                }
+              </div>
               @if (layerState.hasError) {
                 <mat-icon
                   class="layer-error-icon"

@@ -81,16 +81,25 @@
     }
 }
 
+// Case seule (sans libellé projeté) : le libellé est un sibling .map-layer-texts, en dehors de
+// mat-checkbox, pour rester un flex-item ordinaire dont min-width:0 est garanti — le wrapper de
+// libellé interne de mat-checkbox (mdc-form-field) ne propage pas toujours min-width:0 à son
+// contenu projeté, ce qui pouvait faire chevaucher un libellé long (sans espace) et le slider.
 .map-layer-checkbox {
-    flex: 1;
-    min-width: 0;
+    flex-shrink: 0;
 }
 
 .map-layer-texts {
     display: flex;
     flex-direction: column;
     gap: 2px;
+    flex: 1;
     min-width: 0;
+    cursor: pointer;
+
+    &.disabled {
+        cursor: default;
+    }
 }
 
 .map-layer-label {
@@ -120,7 +129,7 @@
 }
 
 .map-layer-slider {
-    width: 160px;
+    width: 96px;
     flex-shrink: 0;
 }
 

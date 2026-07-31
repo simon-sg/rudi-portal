@@ -52,11 +52,11 @@ export class MapTabComponent implements OnInit {
      * Largeur courante du panneau de couches (barre latérale), ajustable en glissant la bordure
      * entre la carte et le panneau (voir startResizingPanel/onPointerMove).
      */
-    panelWidthPx = 320;
+    panelWidthPx = 480;
 
     /** Bornes du glisser-déposer de la bordure entre la carte et le panneau de couches. */
     readonly PANEL_MIN_WIDTH_PX = 220;
-    readonly PANEL_MAX_WIDTH_PX = 560;
+    readonly PANEL_MAX_WIDTH_PX = 720;
 
     /** Vrai pendant un glisser-déposer de la bordure carte/panneau (voir startResizingPanel). */
     isResizingPanel = false;
