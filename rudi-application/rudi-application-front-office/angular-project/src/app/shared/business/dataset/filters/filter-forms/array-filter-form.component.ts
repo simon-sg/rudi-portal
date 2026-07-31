@@ -19,7 +19,9 @@ export abstract class ArrayFilterFormComponent<T> extends FilterFormComponent<st
 
     @Input() set values(values: T[] | undefined) {
         if (values) {
-            this.items = values.map(value => this.getItemFromValue(value));
+            this.items = values
+                .map(value => this.getItemFromValue(value))
+                .sort((a, b) => a.name.localeCompare(b.name, 'fr', {sensitivity: 'base'}));
             this.initFormGroup();
         }
     }
