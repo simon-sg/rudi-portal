@@ -98,10 +98,13 @@
 }
 
 .table-media-select {
-    margin-bottom: 20px;
-
     mat-form-field {
         width: 100%;
         max-width: 420px;
     }
+}
+
+.spreadsheet-toolbar {
+    column-gap: 24px;
+    row-gap: 10px;
 }

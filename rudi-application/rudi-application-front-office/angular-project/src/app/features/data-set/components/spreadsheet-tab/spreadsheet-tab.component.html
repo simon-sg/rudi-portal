@@ -1,22 +1,4 @@
 <div>
-  @if (candidates && candidates.length > 1) {
-    <div class="table-media-select">
-      <mat-form-field appearance="outline">
-        <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
-        <mat-select [value]="selectedMedia" [disabled]="displayTableLoading" (selectionChange)="onMediaSelected($event)">
-          @for (candidate of candidates; track candidate) {
-            <mat-option [value]="candidate">
-              @if (candidate.media_name) {
-                {{ candidate.media_name }}
-              } @else {
-                {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
-              }
-            </mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-  }
   <app-loader [allPage]="false" [isLight]="true" [noText]="true"
   [active]="displayTableLoading"></app-loader>
   @if (!displayTableLoading) {
@@ -25,12 +7,30 @@
         {{'metaData.tabulatedData'|translate}}
       </div>
     }
-    <!--   search zone-->
-    @if (displayTable) {
-      <div class="d-flex justify-content-between mb-5">
-        <div>
-          <form class="w-100 d-flex">
-            <div class="search-box-container w-100">
+    <!--   sélecteur de fichier + recherche + en-têtes, alignés sur une seule ligne -->
+    @if ((candidates && candidates.length > 1) || displayTable) {
+      <div class="spreadsheet-toolbar d-flex align-items-center flex-wrap mb-5">
+        @if (candidates && candidates.length > 1) {
+          <div class="table-media-select">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
+              <mat-select [value]="selectedMedia" [disabled]="displayTableLoading" (selectionChange)="onMediaSelected($event)">
+                @for (candidate of candidates; track candidate) {
+                  <mat-option [value]="candidate">
+                    @if (candidate.media_name) {
+                      {{ candidate.media_name }}
+                    } @else {
+                      {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
+                    }
+                  </mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+        }
+        @if (displayTable) {
+          <form class="d-flex">
+            <div class="search-box-container">
               <div class="search-zone d-flex d-flex align-items-center search-size">
                 <span class="search-box-icon me-5 mt-1">
                   <mat-icon class="me-2" aria-hidden="false" aria-label="filter icon"
@@ -50,15 +50,15 @@
                 </div>
               </div>
             </form>
-          </div>
           <mat-checkbox
             class="button btn-outline"
             [checked]="usesHeader"
             (change)="switchHeader()">
             {{'metaData.tabulatedDataTab.tableHeadingBtn'|translate}}
           </mat-checkbox>
-        </div>
-      }
+        }
+      </div>
+    }
       @if (displayResults) {
         <div class="tabulatedData">
           {{displayTableData.rowData.length}}
