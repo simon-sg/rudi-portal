@@ -769,7 +769,10 @@
     "availableFormats": {
         "formatsDisponibles": "Formats disponibles :",
         "telecharger": "Télécharger",
-        "telechargerZip": "Télécharger (.zip)"
+        "telechargerZip": "Télécharger (.zip)",
+        "telechargerSelection": "Télécharger la sélection",
+        "selectionCsv": "Télécharger en CSV (.csv)",
+        "selectionJson": "Télécharger en JSON (.json)"
     },
     "datasetDate": {
         "debutDePeriode": "Début de période",
