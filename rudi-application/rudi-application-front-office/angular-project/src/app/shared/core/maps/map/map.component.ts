@@ -13,6 +13,7 @@ import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {Level} from '@shared/core/layout/notification-template/notification-template.component';
 import {createWmtsBaseLayer, MapLayerFunction} from '@shared/core/maps/map/map.layer.function';
 import {getDefaultCrs} from '@shared/core/maps/map/map.media.layer.function';
+import {MapLayerState} from '@shared/core/maps/map/map-layer-state';
 import {ADDRESS_STYLE, getHoveredStyle, LINE_STYLE, POINT_STYLE, POLYGON_STYLE} from '@shared/core/maps/map/map.style.function';
 import {SearchAutocompleteItem} from '@shared/core/search/search-autocomplete/search-autocomplete-item.interface';
 import {Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
@@ -33,7 +34,7 @@ import {Style} from 'ol/style';
 import View from 'ol/View';
 import proj4 from 'proj4';
 import {Observable, of} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {tap} from 'rxjs/operators';
 import {SearchAutocompleteComponent} from '../../search/search-autocomplete/search-autocomplete.component';
 import {MapPopupComponent} from '../map-popup/map-popup.component';
 import MediaTypeEnum = Media.MediaTypeEnum;
@@ -106,7 +107,7 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
     metadata: Metadata;
 
     @Input()
-    media: Media;
+    mediaLayers: MapLayerState[];
 
     /**
      * Les sources pour les différents layers
@@ -151,19 +152,31 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
     currentBaseLayer: BaseLayer;
 
     /**
-     * La couche de données du JDD actuellement affichée sur la carte (WMS/WMTS/WFS/GeoJSON), pour
-     * pouvoir la retirer proprement lors d'un changement de média sélectionné (voir ngOnChanges,
-     * removeCurrentMediaLayer).
+     * Les couches de données du JDD déjà créées (WMS/WMTS/WFS/GeoJSON), indexées par media_id. Une
+     * couche n'est créée que la première fois qu'elle passe à visible (création paresseuse, voir
+     * syncMediaLayers) puis n'est plus jamais retirée de la carte : décocher/re-cocher ne fait que
+     * la masquer/la ré-afficher, sans re-télécharger WFS/GeoJSON.
      */
-    mediaDataLayer: BaseLayer;
+    private mediaDataLayers: Map<string, BaseLayer> = new Map();
 
     /**
-     * La couche actuellement interactive (cliquable pour la popup de feature). Mise à jour à chaque
-     * chargement de couche de données (voir handleLoadLayers). Le listener de clic unique (voir
-     * addFeatureInteraction, enregistré une seule fois dans initMap()) la consulte dynamiquement,
-     * pour rester valide après un changement de média sans empiler un nouveau listener à chaque fois.
+     * media_id des couches dont la création asynchrone (enregistrement CRS proj4 et/ou
+     * téléchargement GeoJSON) est en cours. syncMediaLayers() est rejouée à CHAQUE changement de
+     * mediaLayers, y compris pour une couche encore en cours de création suite à un changement
+     * précédent (par ex. cocher une 2e couche pendant que la création de la 1re est encore en vol) :
+     * sans ce garde-fou, la couche pas encore enregistrée dans mediaDataLayers y déclencherait un
+     * 2e createMediaLayer() concurrent, donc une 2e requête et une couche orpheline sur la carte.
      */
-    interactiveMediaLayer: BaseLayer;
+    private pendingMediaLayers: Set<string> = new Set();
+
+    /**
+     * Les couches interactives (cliquables pour la popup de feature) : toutes les couches WFS et
+     * GeoJSON créées jusqu'ici, quel que soit leur état visible/masqué (forEachFeatureAtPixel
+     * ignore de toute façon les couches masquées). Le listener de clic unique (voir
+     * addFeatureInteraction, enregistré une seule fois dans initMap()) la consulte dynamiquement,
+     * pour rester valide à l'ajout de nouvelles couches sans empiler un nouveau listener.
+     */
+    private interactiveMediaLayers: Set<BaseLayer> = new Set();
 
     /**
      * L'extent de la géométrie du JDD (bounding box ou geometric distribution)
@@ -213,54 +226,33 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
     }
 
     /**
-     * Réagit à un changement de média sélectionné (sélecteur de fichier de l'onglet Carte, voir
-     * MapTabComponent). Le tout premier changement (chargement initial) est ignoré : il est déjà
-     * géré par ngAfterViewInit. Si la carte n'est pas encore initialisée (this.map == null — cas
-     * rare d'une sélection changée avant la fin de l'initialisation asynchrone de la projection), on
-     * ne fait rien : ngAfterViewInit lira de toute façon la dernière valeur de this.media au moment
-     * où il s'exécutera (Angular affecte les @Input() avant tout hook de cycle de vie).
+     * Réagit à chaque changement de référence de @Input() mediaLayers (voir MapTabComponent, qui
+     * remplace le tableau à chaque case cochée/décochée ou slider bougé). syncMediaLayers est
+     * idempotente et rejouable : pas de distinction firstChange. Si la carte n'est pas encore
+     * initialisée (this.map == null), on ne fait rien : initMap() appelle de toute façon
+     * syncMediaLayers() à la fin, avec la dernière valeur de mediaLayers.
      */
     ngOnChanges(changes: SimpleChanges): void {
-        if (changes.media && !changes.media.firstChange && this.map != null) {
-            this.removeCurrentMediaLayer();
-            this.handleLoadLayers();
+        if (changes.mediaLayers && this.map != null) {
+            this.syncMediaLayers();
         }
     }
 
     ngAfterViewInit(): void {
         if (this.map == null) {
-            let projection: Observable<Projection>;
-
             // La projection de la VUE (et du fond de plan) est TOUJOURS EPSG:3857, projection native
-            // des fonds web-mercator. Le default_crs propre au connecteur du média n'est PAS la
-            // projection de la carte entière : on l'enregistre seulement dans proj4 pour qu'OpenLayers
-            // sache reprojeter la couche WMS/WFS de ce média vers la vue (cf. map.layer.function.ts).
-            if (this.media != null) {
-                const mediaCrs = getDefaultCrs(this.media);
-                this.viewProjectionString = DEFAULT_VIEW_PROJECTION;
-                const register$ = (mediaCrs && mediaCrs !== DEFAULT_VIEW_PROJECTION)
-                    ? this.displayMapService.registerAndGetProjection(mediaCrs).pipe(map(() => get(DEFAULT_VIEW_PROJECTION)))
-                    : of(get(DEFAULT_VIEW_PROJECTION));
-                projection = register$.pipe(
-                    tap(() => {
-                        this.centeredPoint = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenter);
-                        const topLeft = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterTopleft);
-                        const bottomRight = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterBottomRight);
-                        this.initExtent = boundingExtent([topLeft, bottomRight]);
-                    })
-                );
-            }
-            // Affichage d'une carte quelconque : EPSG:3857
-            else {
-                projection = of(get(DEFAULT_VIEW_PROJECTION)).pipe(
-                    tap(() => {
-                        this.centeredPoint = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenter);
-                        const topLeft = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterTopleft);
-                        const bottomRight = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterBottomRight);
-                        this.initExtent = boundingExtent([topLeft, bottomRight]);
-                    })
-                );
-            }
+            // des fonds web-mercator. Le default_crs propre au connecteur d'un média n'est PAS la
+            // projection de la carte entière : il est enregistré dans proj4 par couche, juste avant
+            // la création de la couche concernée (voir createMediaLayer), pour qu'OpenLayers sache
+            // reprojeter chaque couche WMS/WFS vers la vue (cf. map.layer.function.ts).
+            const projection: Observable<Projection> = of(get(DEFAULT_VIEW_PROJECTION)).pipe(
+                tap(() => {
+                    this.centeredPoint = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenter);
+                    const topLeft = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterTopleft);
+                    const bottomRight = proj4(GPS_PROJECTION, DEFAULT_VIEW_PROJECTION, this.mapCenterBottomRight);
+                    this.initExtent = boundingExtent([topLeft, bottomRight]);
+                })
+            );
 
             projection.pipe(
                 tap((usedProjection: Projection) => {
@@ -441,7 +433,7 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
         // Sinon on se centre pas
 
         // Chargement des dépendances
-        this.handleLoadLayers();
+        this.syncMediaLayers();
         this.handleMapEvents();
         this.addFeatureInteraction();
 
@@ -451,57 +443,115 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
     }
 
     /**
-     * Retire de la carte l'éventuelle couche de données actuellement affichée, et ferme la popup
-     * ouverte (qui pourrait référencer une feature de cette couche). Appelé avant de recharger la
-     * couche pour un nouveau média sélectionné (voir ngOnChanges).
+     * Synchronise la carte avec l'état courant des couches (@Input() mediaLayers). Idempotente et
+     * rejouable à tout moment (initMap() puis ngOnChanges) :
+     * - visible + couche non créée → la créer (création paresseuse, voir createMediaLayer), sauf si
+     *   sa création est déjà en cours (voir pendingMediaLayers) suite à un appel précédent de cette
+     *   même méthode
+     * - visible + couche déjà créée → setVisible(true) + setOpacity (couvre slider bougé et
+     *   ré-activation d'une couche précédemment masquée)
+     * - masquée + couche déjà créée → setVisible(false) seulement (jamais retirée de la carte)
+     * - masquée + non créée → ne rien faire
      * @private
      */
-    private removeCurrentMediaLayer(): void {
-        if (this.mediaDataLayer != null) {
-            this.map.removeLayer(this.mediaDataLayer);
-            this.mediaDataLayer = null;
+    private syncMediaLayers(): void {
+        if (this.metadata == null || this.mediaLayers == null) {
+            return;
         }
-        this.interactiveMediaLayer = null;
-        this.handleClosePopup();
+        for (const state of this.mediaLayers) {
+            const mediaId = state.media.media_id;
+            const layer = this.mediaDataLayers.get(mediaId);
+            if (state.visible) {
+                if (layer == null) {
+                    if (!this.pendingMediaLayers.has(mediaId)) {
+                        this.pendingMediaLayers.add(mediaId);
+                        this.createMediaLayer(state.media);
+                    }
+                } else {
+                    layer.setVisible(true);
+                    layer.setOpacity(state.opacity);
+                }
+            } else if (layer != null) {
+                layer.setVisible(false);
+            }
+        }
     }
 
-    private handleLoadLayers(): void {
-        // Gestion chargement des données du JDD
-        if (this.metadata != null && this.media != null) {
-            let layer;
-            if (this.media.connector.interface_contract === MAP_PROTOCOLS.WMS) {
-                layer = this.mapLayerFunction.createWmsDataLayer(this.metadata.global_id, this.media);
-            } else if (this.media.connector.interface_contract === MAP_PROTOCOLS.WMTS) {
-                layer = this.mapLayerFunction.createWmtsDataLayer(this.metadata.global_id, this.media);
-            } else if (this.media.connector.interface_contract === MAP_PROTOCOLS.WFS) {
-                layer = this.mapLayerFunction.createWfsDataLayer(this.metadata.global_id, this.media);
-                this.interactiveMediaLayer = layer;
-            } else if (this.media.media_type === MediaTypeEnum.File) {
-                const mediaFile: MediaFile = this.media as MediaFile;
-                if (mediaFile.file_type === FileTypes.GEO_JSON) {
-                    const requestedMedia = this.media;
-                    this.mapLayerFunction.createGeojsonDataLayer(this.media).subscribe({
-                        next: (baseLayer: BaseLayer) => {
-                            // Le média a pu changer pendant le téléchargement (asynchrone) du geojson :
-                            // si l'utilisateur a re-sélectionné un autre fichier entre-temps, ce
-                            // résultat devenu obsolète est ignoré.
-                            if (this.media !== requestedMedia) {
-                                return;
-                            }
-                            this.mediaDataLayer = baseLayer;
-                            this.map.getLayers().push(baseLayer);
-                            this.interactiveMediaLayer = baseLayer;
-                        }
-                    });
-                }
-            }
+    /**
+     * Crée la couche OL pour le média donné (WMS/WMTS/WFS synchrones, GeoJSON asynchrone). Avant
+     * la création, enregistre dans proj4 le CRS propre au connecteur s'il diffère de la projection
+     * de la vue (EPSG:3857) — le même enchaînement asynchrone que l'ancien ngAfterViewInit, mais
+     * déplacé au niveau de la couche : avec plusieurs couches potentiellement de CRS différents,
+     * l'enregistrement se fait par couche, juste avant sa création.
+     * @param media le média à afficher
+     * @private
+     */
+    private createMediaLayer(media: Media): void {
+        const mediaCrs = getDefaultCrs(media);
+        const register$ = (mediaCrs != null && mediaCrs !== DEFAULT_VIEW_PROJECTION)
+            ? this.displayMapService.registerAndGetProjection(mediaCrs)
+            : of(null);
 
-            if (layer != null) {
-                this.mediaDataLayer = layer;
-                this.map.getLayers().push(layer);
+        register$.subscribe({
+            next: () => this.buildMediaLayer(media),
+            error: (err) => {
+                this.pendingMediaLayers.delete(media.media_id);
+                this.logService.error(err);
+            }
+        });
+    }
+
+    /**
+     * Dispatche la construction de la couche selon le protocole/type du média (même dispatch que
+     * l'ancien handleLoadLayers) puis l'ajoute à la carte.
+     * @param media le média à afficher
+     * @private
+     */
+    private buildMediaLayer(media: Media): void {
+        const mediaId = media.media_id;
+        if (media.connector.interface_contract === MAP_PROTOCOLS.WMS) {
+            this.addMediaLayer(mediaId, this.mapLayerFunction.createWmsDataLayer(this.metadata.global_id, media));
+        } else if (media.connector.interface_contract === MAP_PROTOCOLS.WMTS) {
+            this.addMediaLayer(mediaId, this.mapLayerFunction.createWmtsDataLayer(this.metadata.global_id, media));
+        } else if (media.connector.interface_contract === MAP_PROTOCOLS.WFS) {
+            const layer = this.mapLayerFunction.createWfsDataLayer(this.metadata.global_id, media);
+            this.interactiveMediaLayers.add(layer);
+            this.addMediaLayer(mediaId, layer);
+        } else if (media.media_type === MediaTypeEnum.File) {
+            const mediaFile: MediaFile = media as MediaFile;
+            if (mediaFile.file_type === FileTypes.GEO_JSON) {
+                this.mapLayerFunction.createGeojsonDataLayer(media).subscribe({
+                    next: (baseLayer: BaseLayer) => {
+                        // Le téléchargement du GeoJSON est asynchrone : la couche est ajoutée même
+                        // si l'utilisateur a décoché/re-coché entre-temps (les couches ne sont
+                        // jamais retirées, seulement masquées), avec l'état visible/opacité courant.
+                        this.interactiveMediaLayers.add(baseLayer);
+                        this.addMediaLayer(mediaId, baseLayer);
+                    },
+                    error: (e) => {
+                        this.pendingMediaLayers.delete(mediaId);
+                        this.logService.error(e);
+                    }
+                });
             }
         }
+    }
 
+    /**
+     * Enregistre la couche créée dans la Map interne (indexée par media_id), l'ajoute à la carte et
+     * applique l'état visible/opacité courant — pas celui au moment du déclenchement de la
+     * création, qui a pu changer pendant une création asynchrone (GeoJSON, enregistrement proj4).
+     * @param mediaId media_id du média
+     * @param layer la couche OpenLayers créée
+     * @private
+     */
+    private addMediaLayer(mediaId: string, layer: BaseLayer): void {
+        this.pendingMediaLayers.delete(mediaId);
+        this.mediaDataLayers.set(mediaId, layer);
+        this.map.getLayers().push(layer);
+        const state = this.mediaLayers?.find(layerState => layerState.media.media_id === mediaId);
+        layer.setVisible(state?.visible ?? true);
+        layer.setOpacity(state?.opacity ?? 1);
     }
 
     private handleMapEvents(): void {
@@ -641,13 +691,13 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
 
     /**
      * Enregistre (une seule fois, voir l'appel dans initMap()) le listener de clic gérant la popup
-     * de feature. Consulte this.interactiveMediaLayer dynamiquement (mis à jour à chaque chargement
-     * de couche, voir handleLoadLayers) plutôt que de capturer une couche par fermeture : évite
-     * d'empiler un nouveau listener map.on('click', ...) à chaque changement de média sélectionné.
+     * de feature. Consulte this.interactiveMediaLayers dynamiquement (mis à jour à chaque création
+     * de couche WFS/GeoJSON, voir buildMediaLayer) plutôt que de capturer une couche par fermeture :
+     * évite d'empiler un nouveau listener map.on('click', ...) à chaque ajout de couche.
      */
     addFeatureInteraction(): void {
         this.map.on('click', (event) => {
-            if (this.interactiveMediaLayer == null) {
+            if (this.interactiveMediaLayers.size === 0) {
                 return;
             }
 
@@ -656,7 +706,7 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
             }
 
             const feature = this.map.forEachFeatureAtPixel(event.pixel, (clickedFeature, clickedLayer) => {
-                    return clickedLayer === this.interactiveMediaLayer ? clickedFeature : null;
+                    return this.interactiveMediaLayers.has(clickedLayer) ? clickedFeature : null;
                 }
             );
 

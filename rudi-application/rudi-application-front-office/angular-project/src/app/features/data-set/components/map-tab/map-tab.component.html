@@ -3,26 +3,46 @@
   @if (!isMapLoading && !isErrorAccess) {
     @if (candidates && candidates.length > 1) {
       <div class="map-media-select">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
-          <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
-            @for (candidate of candidates; track candidate) {
-              <mat-option [value]="candidate">
-                @if (candidate.media_type === mediaType.File) {
-                  @if (candidate.media_name) {
-                    {{ candidate.media_name }}
-                  } @else {
-                    {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
-                  }
-                } @else if (candidate.media_caption) {
-                  {{ candidate.media_caption }}
+        @for (layerState of layerStates; track layerState.media.media_id) {
+          <div class="map-layer-row">
+            <mat-checkbox
+              class="map-layer-checkbox"
+              [checked]="layerState.visible"
+              [disabled]="layerState.hasError"
+              (change)="toggleLayerVisibility(layerState.media.media_id)"
+              >
+              @if (layerState.media.media_type === mediaType.File) {
+                @if (layerState.media.media_name) {
+                  {{ layerState.media.media_name }}
                 } @else {
-                  {{ 'metaData.service'|translate }} ({{ candidate.connector?.interface_contract }})
+                  {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(layerState.media) }})
                 }
-              </mat-option>
+              } @else if (layerState.media.media_caption) {
+                {{ layerState.media.media_caption }}
+              } @else {
+                {{ 'metaData.service'|translate }} ({{ layerState.media.connector?.interface_contract }})
+              }
+            </mat-checkbox>
+            @if (layerState.hasError) {
+              <mat-icon
+                class="layer-error-icon"
+                [matTooltip]="'metaData.mapDataTab.error' | translate"
+                >{{ 'error' }}</mat-icon>
+            } @else {
+              <mat-slider
+                class="map-layer-slider"
+                min="0" max="100" step="1"
+                [disabled]="!layerState.visible"
+                >
+                <input
+                  matSliderThumb
+                  [value]="layerState.opacity * 100"
+                  (input)="setLayerOpacity(layerState.media.media_id, $any($event.target).value / 100)"
+                  >
+              </mat-slider>
             }
-          </mat-select>
-        </mat-form-field>
+          </div>
+        }
       </div>
     }
     <div class="map-header"></div>
@@ -32,7 +52,7 @@
           [baseLayers]="baseLayers"
           [hasSearchAddress]="true"
           [metadata]="metadata"
-          [media]="selectedMedia"
+          [mediaLayers]="layerStates"
           >
         </app-map>
       </div>
