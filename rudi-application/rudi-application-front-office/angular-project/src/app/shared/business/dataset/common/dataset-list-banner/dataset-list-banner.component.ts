@@ -1,11 +1,11 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
 import {MediaSize} from '@core/services/breakpoint-observer.service';
 import {AccessStatusFiltersType} from '@core/services/filters/access-status-filters-type';
+import {FileTypeCount, ProducerCount} from '@core/services/konsult-metier.service';
 import {
     AccessStatusFilterItem
 } from '@shared/business/dataset/filters/filter-forms/access-status-filter-form/access-status-filter-form.component';
 import {Item} from '@shared/business/dataset/filters/filter-forms/item';
-import {FileTypeCount} from '@core/services/konsult-metier.service';
 import {SimpleSkosConcept} from 'micro_service_modules/kos/kos-model';
 import {MatToolbar} from '@angular/material/toolbar';
 import {NgClass} from '@angular/common';
@@ -39,7 +39,7 @@ export class DatasetListBannerComponent {
     @Output() selectedThemeItemsChange = new EventEmitter<Item[]>();
     @Output() selectedAccessStatusItemsChange = new EventEmitter<AccessStatusFilterItem[]>();
     @Input() themes: SimpleSkosConcept[];
-    @Input() producerNames: string[];
+    @Input() producerNames: ProducerCount[];
     @Input() fileTypes: FileTypeCount[];
     @Input() accessStatusForcedValue: AccessStatusFiltersType;
     @Input() accessStatusHiddenValues: AccessStatusFiltersType[];
