@@ -7,7 +7,7 @@ import {Router} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {FiltersService} from '@core/services/filters.service';
 import {OrderValue} from '@core/services/filters/order-filter';
-import {FileTypeCount, KonsultMetierService, MAX_RESULTS_PER_PAGE} from '@core/services/konsult-metier.service';
+import {FileTypeCount, KonsultMetierService, MAX_RESULTS_PER_PAGE, ProducerCount} from '@core/services/konsult-metier.service';
 import {LogService} from '@core/services/log.service';
 import {SidenavOpeningsService} from '@core/services/sidenav-openings.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
@@ -79,7 +79,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
     searche$: Observable<string>;
     metadataListTotal: number;
     private filtersServiceSubscription?: Subscription;
-    producerNames: string[];
+    producerNames: ProducerCount[];
     fileTypes: FileTypeCount[];
     private readonly isDestroyed$: Subject<void> = new Subject<void>();
     selectedDatesItems: Item[] = [];
@@ -133,7 +133,7 @@ export class ListContainerComponent implements OnInit, OnDestroy {
         this.sidenavOpeningsService.sideNavOpening$.pipe(takeUntil(this.isDestroyed$)).subscribe(() => {
             this.sidenav?.open();
         });
-        this.konsultMetierService.getProducerNames().subscribe(
+        this.konsultMetierService.getProducerNamesWithCounts().subscribe(
             producerNames => this.producerNames = producerNames
         );
         this.konsultMetierService.getAvailableFileTypes().subscribe({

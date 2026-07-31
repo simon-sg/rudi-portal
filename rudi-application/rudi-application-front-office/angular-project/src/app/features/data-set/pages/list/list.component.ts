@@ -8,7 +8,7 @@ import {Router} from '@angular/router';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {FiltersService} from '@core/services/filters.service';
 import {OrderValue} from '@core/services/filters/order-filter';
-import {KonsultMetierService} from '@core/services/konsult-metier.service';
+import {KonsultMetierService, ProducerCount} from '@core/services/konsult-metier.service';
 import {KosMetierService} from '@core/services/kos-metier.service';
 import {ProvidersMetierService} from '@core/services/providers-metier.service';
 import {SidenavOpeningsService} from '@core/services/sidenav-openings.service';
@@ -54,7 +54,7 @@ export class ListComponent implements OnInit, OnDestroy {
         '-producer.organization_name',
     ];
 
-    producerNames: string[];
+    producerNames: ProducerCount[];
     selectedDatesItems: Item[] = [];
     selectedThemeItems: Item[] = [];
     selectedProducerItems: Item[] = [];
@@ -79,7 +79,7 @@ export class ListComponent implements OnInit, OnDestroy {
         this.sidenavOpeningsService.sideNavOpening$.pipe(takeUntil(this.isDestroyed$)).subscribe(() => {
             this.sidenav.open();
         });
-        this.konsultMetierService.getProducerNames().subscribe(
+        this.konsultMetierService.getProducerNamesWithCounts().subscribe(
             producerNames => this.producerNames = producerNames
         );
         this.konsultMetierService.getThemeCodes().pipe(
