@@ -2,7 +2,7 @@
   <app-loader [allPage]="false" [isLight]="true" [noText]="true" [active]="isMapLoading"></app-loader>
   @if (!isMapLoading && !isErrorAccess) {
     <div class="map-header"></div>
-    <div class="map-body">
+    <div class="map-body" [class.resizing]="isResizingPanel" #mapBody>
       @if (!hasMediaError) {
         <div class="map-container">
           <app-map [mapId]="'rudi-map-tab'"
@@ -20,20 +20,12 @@
         </app-error-box>
       }
       @if (candidates && candidates.length > 1) {
+        <div
+          class="map-panel-resizer"
+          (pointerdown)="startResizingPanel($event)"
+          >
+        </div>
         <div class="map-media-select" [style.width.px]="panelWidthPx">
-          <div class="map-panel-width-row">
-            <span class="map-panel-width-label">{{ 'metaData.mapDataTab.panelWidth'|translate }}</span>
-            <mat-slider
-              class="map-panel-width-slider"
-              [min]="PANEL_MIN_WIDTH_PX" [max]="PANEL_MAX_WIDTH_PX" step="1"
-              >
-              <input
-                matSliderThumb
-                [value]="panelWidthPx"
-                (input)="setPanelWidth($any($event.target).value)"
-                >
-            </mat-slider>
-          </div>
           @for (layerState of layerStates; track layerState.media.media_id) {
             <div class="map-layer-row">
               <mat-checkbox

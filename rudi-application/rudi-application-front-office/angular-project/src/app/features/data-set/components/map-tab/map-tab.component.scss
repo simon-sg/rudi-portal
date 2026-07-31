@@ -17,11 +17,45 @@
 }
 
 // Conteneur flex ligne : la carte (qui prend l'espace restant) et, à côté, le panneau de couches en
-// barre latérale à largeur ajustable. Si le panneau n'est pas affiché (0 ou 1 candidat), la carte
-// occupe toute la largeur, comportement visuel identique à l'ancienne mise en page.
+// barre latérale à largeur ajustable par glisser-déposer (.map-panel-resizer). Si le panneau n'est
+// pas affiché (0 ou 1 candidat), la carte occupe toute la largeur, comportement visuel identique à
+// l'ancienne mise en page. .resizing (pendant un drag, voir MapTabComponent.isResizingPanel) évite
+// que le survol d'iframes/la sélection de texte n'interrompe le geste.
 .map-body {
     display: flex;
     align-items: stretch;
+
+    &.resizing {
+        cursor: col-resize;
+        user-select: none;
+    }
+}
+
+// Poignée de redimensionnement entre la carte et le panneau : cible de clic large (8px) autour
+// d'un trait fin, pour rester facile à attraper sans être visuellement épaisse.
+.map-panel-resizer {
+    flex-shrink: 0;
+    width: 8px;
+    cursor: col-resize;
+    touch-action: none;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 3px;
+        width: 1px;
+        background: var(--blocks-and-menus-outline);
+    }
+
+    &:hover::after,
+    .map-body.resizing &::after {
+        left: 2px;
+        width: 3px;
+        background: var(--primary-color);
+    }
 }
 
 // Panneau de couches en barre latérale À DROITE de la carte (case à cocher visible + slider
@@ -33,28 +67,6 @@
     padding: 16px;
     max-height: 700px;
     overflow-y: auto;
-    border-left: 0.8px solid var(--blocks-and-menus-outline);
-}
-
-.map-panel-width-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 16px;
-}
-
-.map-panel-width-label {
-    font-size: 13px;
-    color: var(--secondary-text);
-    white-space: nowrap;
-}
-
-// Largeur fixe (même approche que .map-layer-slider, dont le rendu est déjà éprouvé) plutôt que
-// flex:1/min-width:0, qui ne réservait pas de largeur intrinsèque au mat-slider (MDC) et le
-// rendait invisible dans cette rangée.
-.map-panel-width-slider {
-    width: 140px;
-    flex-shrink: 0;
 }
 
 .map-layer-row {

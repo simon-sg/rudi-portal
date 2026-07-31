@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, ElementRef, HostListener, Input, OnInit, ViewChild} from '@angular/core';
 import {MatCard} from '@angular/material/card';
 import {MatCheckbox} from '@angular/material/checkbox';
 import {MatIcon} from '@angular/material/icon';
@@ -48,12 +48,22 @@ export class MapTabComponent implements OnInit {
     @Input()
     candidates: Media[] = [];
 
-    /** Largeur courante du panneau de couches (barre latérale), ajustable par le slider du panneau. */
+    /**
+     * Largeur courante du panneau de couches (barre latérale), ajustable en glissant la bordure
+     * entre la carte et le panneau (voir startResizingPanel/onPointerMove).
+     */
     panelWidthPx = 320;
 
-    /** Bornes du slider de largeur du panneau de couches. */
+    /** Bornes du glisser-déposer de la bordure entre la carte et le panneau de couches. */
     readonly PANEL_MIN_WIDTH_PX = 220;
     readonly PANEL_MAX_WIDTH_PX = 560;
+
+    /** Vrai pendant un glisser-déposer de la bordure carte/panneau (voir startResizingPanel). */
+    isResizingPanel = false;
+
+    /** Conteneur flex carte + panneau, pour calculer la largeur du panneau depuis la position du curseur. */
+    @ViewChild('mapBody')
+    mapBodyRef: ElementRef<HTMLElement>;
 
     /**
      * États des couches cartographiables (un par candidat), transmis à app-map via
@@ -137,11 +147,36 @@ export class MapTabComponent implements OnInit {
     }
 
     /**
-     * Change la largeur du panneau de couches (barre latérale), pilotée par le slider du panneau.
-     * @param px nouvelle largeur en pixels (bornée par PANEL_MIN_WIDTH_PX / PANEL_MAX_WIDTH_PX)
+     * Démarre le glisser-déposer de la bordure entre la carte et le panneau de couches (poignée
+     * .map-panel-resizer). La suite du geste est captée au niveau du document (onPointerMove/
+     * onPointerUp) : le curseur peut sortir de la poignée pendant le drag sans l'interrompre.
+     * @param event l'événement pointerdown sur la poignée
      */
-    setPanelWidth(px: number): void {
-        this.panelWidthPx = px;
+    startResizingPanel(event: PointerEvent): void {
+        event.preventDefault();
+        this.isResizingPanel = true;
+    }
+
+    /**
+     * Poursuit un glisser-déposer en cours (voir startResizingPanel) : le panneau étant à droite de
+     * la carte, sa largeur est la distance entre le curseur et le bord droit du conteneur .map-body,
+     * bornée par PANEL_MIN_WIDTH_PX / PANEL_MAX_WIDTH_PX.
+     * @param event l'événement pointermove du document
+     */
+    @HostListener('document:pointermove', ['$event'])
+    onPointerMove(event: PointerEvent): void {
+        if (!this.isResizingPanel || this.mapBodyRef == null) {
+            return;
+        }
+        const containerRight = this.mapBodyRef.nativeElement.getBoundingClientRect().right;
+        const proposedWidth = containerRight - event.clientX;
+        this.panelWidthPx = Math.min(this.PANEL_MAX_WIDTH_PX, Math.max(this.PANEL_MIN_WIDTH_PX, proposedWidth));
+    }
+
+    /** Termine un glisser-déposer en cours (voir startResizingPanel), où qu'ait fini le curseur. */
+    @HostListener('document:pointerup')
+    onPointerUp(): void {
+        this.isResizingPanel = false;
     }
 
     /**
