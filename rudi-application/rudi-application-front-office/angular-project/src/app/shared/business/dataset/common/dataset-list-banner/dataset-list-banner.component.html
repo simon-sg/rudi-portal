@@ -19,7 +19,8 @@
         #producerNamesMenu
         (closed)="producerNamesForm.revert()"
         [counter$]="producerNamesForm.counter$"
-        buttonTextKey="filterBox.producteur">
+        buttonTextKey="filterBox.producteur"
+        extraPanelClass="rudi-menu-wide">
         <app-producer-names-filter-form
             #producerNamesForm
             (selectedItemsChange)="selectedProducerItemsChange.emit($event)"
@@ -33,7 +34,8 @@
         #fileTypesMenu
         (closed)="fileTypesForm.revert()"
         [counter$]="fileTypesForm.counter$"
-        buttonTextKey="filterBox.typeFichier">
+        buttonTextKey="filterBox.typeFichier"
+        extraPanelClass="rudi-menu-medium">
         <app-file-types-filter-form
             #fileTypesForm
             (selectedItemsChange)="selectedFileTypeItemsChange.emit($event)"

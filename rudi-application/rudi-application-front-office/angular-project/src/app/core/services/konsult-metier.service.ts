@@ -32,6 +32,11 @@ export interface FileTypeCount {
     count: number;
 }
 
+export interface ProducerCount {
+    name: string;
+    count: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -95,6 +100,13 @@ export class KonsultMetierService {
 
     private static getFacetsValues(facets: MetadataFacets): string[] {
         return facets.items.length ? facets.items[0].values.map(facetValue => facetValue.value) : [];
+    }
+
+    private static getFacetValuesWithCounts(facets: MetadataFacets): ProducerCount[] {
+        return facets.items.length ? facets.items[0].values.map(facetValue => ({
+            name: facetValue.value,
+            count: facetValue.count
+        })) : [];
     }
 
     /**
@@ -248,6 +260,12 @@ export class KonsultMetierService {
     getProducerNames(): Observable<string[]> {
         return this.getMetadataProducersFacets().pipe(
             map(facets => KonsultMetierService.getFacetsValues(facets))
+        );
+    }
+
+    getProducerNamesWithCounts(): Observable<ProducerCount[]> {
+        return this.getMetadataProducersFacets().pipe(
+            map(facets => KonsultMetierService.getFacetValuesWithCounts(facets))
         );
     }
 

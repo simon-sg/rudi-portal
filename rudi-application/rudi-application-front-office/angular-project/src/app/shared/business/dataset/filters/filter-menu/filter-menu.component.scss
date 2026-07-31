@@ -1,5 +1,13 @@
 @use "app/styles/common-style";
 
+::ng-deep .mat-mdc-menu-panel.rudi-menu-wide {
+    min-width: 400px;
+}
+
+::ng-deep .mat-mdc-menu-panel.rudi-menu-medium {
+    min-width: 220px;
+}
+
 ::ng-deep .rudi-select-button {
     box-shadow: none !important;
     color: #000000;

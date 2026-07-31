@@ -17,6 +17,7 @@ export class FilterMenuComponent {
     @Input() buttonTextKey: string;
     @Input() counter$: Observable<number>;
     @Input() isHidden = false;
+    @Input() extraPanelClass = '';
     @Output() closed = new EventEmitter<void>();
     @ViewChild('matMenuTrigger') matMenuTrigger: MatMenuTrigger;
     private _menuIsOpened = false;
