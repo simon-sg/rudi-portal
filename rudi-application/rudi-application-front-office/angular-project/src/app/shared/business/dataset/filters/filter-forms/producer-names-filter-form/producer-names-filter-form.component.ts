@@ -17,10 +17,23 @@ import {TranslatePipe} from '@ngx-translate/core';
 })
 export class ProducerNamesFilterFormComponent extends ArrayFilterFormComponent<string> {
 
+    searchText = '';
+
     constructor(
         protected readonly filtersService: FiltersService
     ) {
         super(filtersService);
+    }
+
+    get filteredItems(): {item: Item, index: number}[] {
+        const search = this.normalize(this.searchText);
+        return this.items
+            .map((item, index) => ({item, index}))
+            .filter(({item}) => this.normalize(item.name).includes(search));
+    }
+
+    private normalize(value: string): string {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     }
 
     get formArrayName(): string {
