@@ -128,9 +128,15 @@
     flex-shrink: 0;
 }
 
+// mat-slider (MDC) rend son <input matSliderThumb> avec un offset négatif (ex. left: -21px,
+// zone de survol du curseur) qui déborde de la boîte du composant vers la gauche. Avec le seul
+// gap:16px de .map-layer-row, ce débordement ne laisse que quelques px avant le libellé — d'où un
+// chevauchement visuel intermittent selon la longueur du texte. Marge supplémentaire pour absorber
+// ce débordement avec de la marge (confirmé empiriquement, cf. bounding rect du input à l'exécution).
 .map-layer-slider {
     width: 96px;
     flex-shrink: 0;
+    margin-left: 16px;
 }
 
 // Icône d'erreur discrète pour un candidat non affichable : même couleur d'erreur que le bloc
