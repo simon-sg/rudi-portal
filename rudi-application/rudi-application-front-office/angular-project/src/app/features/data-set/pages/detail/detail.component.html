@@ -16,7 +16,7 @@
         </app-page-heading>
         <!-- Fin Icon et titre de la ressource -->
         <!-- Bandeau -->
-        <app-tabs>
+        <app-tabs (activeTabChange)="onActiveTabChange($event)">
           <app-tab [label]="'metaData.informations'|translate"
             [icon]="'icon_tab_infos'">
             <ng-template>
@@ -76,6 +76,37 @@
           }
           <!-- Boutton télécharger -->
             @if (!isSelfdata && hasDownloadableMedia) {
+            @if (isSpreadsheetTabActive && isSpreadsheetFilterActive) {
+            <app-banner-button #clickMenuFormatTrigger="matMenuTrigger" [matMenuTriggerFor]="selectionFormatMenu">
+              <div class="d-flex align-items-center">
+                <mat-icon class="icon-syle icon-save me-l">save_alt</mat-icon>
+                <div
+                  [ngClass]="{'banner-icon-libelle': mediaSize.isSm}">{{ 'availableFormats.telechargerSelection'|translate }}
+                </div>
+              </div>
+              <mat-menu #selectionFormatMenu="matMenu" role="menu" yPosition="below">
+                    <div (click)="$event.stopPropagation()" class="rudi-select-panel d-flex flex-column">
+                      <div class="menu-radioGroup-scrollable">
+                        <h4 class="menu-libelle">{{ 'availableFormats.telechargerSelection'|translate }}</h4>
+                        <button
+                          (click)="downloadSelectionAsCsv()"
+                          class="button menu-btn-download"
+                          mat-raised-button
+                          type="button">
+                          {{ 'availableFormats.selectionCsv'|translate }}
+                        </button>
+                        <button
+                          (click)="downloadSelectionAsJson()"
+                          class="button menu-btn-download"
+                          mat-raised-button
+                          type="button">
+                          {{ 'availableFormats.selectionJson'|translate }}
+                        </button>
+                      </div>
+                    </div>
+                  </mat-menu>
+            </app-banner-button>
+            } @else {
             <app-banner-button #clickMenuFormatTrigger="matMenuTrigger" [matMenuTriggerFor]="formatMenu">
               <div class="d-flex align-items-center">
                 <mat-icon class="icon-syle icon-save me-l">save_alt</mat-icon>
@@ -116,6 +147,7 @@
                     </div>
                   </mat-menu>
             </app-banner-button>
+            }
           }
           <!-- Faire une demande d'information sur ses données personnelles detenues -->
           @if (isSelfdata) {

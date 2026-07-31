@@ -6,8 +6,9 @@
         [defaultColDef]="defaultColDef"
         [rowHeight]="50"
         [gridOptions]="gridOptions"
-        (gridReady)="fitColumnSize()"
-        (modelUpdated)="fitColumnSize()"
+        (gridReady)="onGridReady()"
+        (modelUpdated)="autoSizeColumns()"
+        (filterChanged)="onFilterChanged()"
     >
     </ag-grid-angular>
 </div>

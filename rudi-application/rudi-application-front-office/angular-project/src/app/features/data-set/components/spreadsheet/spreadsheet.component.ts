@@ -1,14 +1,16 @@
-import {Component, Input, ViewChild} from '@angular/core';
-import {BreakpointObserverService} from '@core/services/breakpoint-observer.service';
+import {Component, Input, OnDestroy, ViewChild} from '@angular/core';
 import {AgGridAngular} from 'ag-grid-angular';
 import {ColDef, GridOptions} from 'ag-grid-community';
+import {SpreadsheetFilterService} from '@core/services/data-set/spreadsheet-filter.service';
+import {ColumnFilterComponent} from './column-filter/column-filter.component';
 import {SPREADSHEET_LOCALE_FR} from './spreadsheet-locale-fr';
 
 export const SPREADSHEET_COLDEF_INDEX: ColDef = {
     field: '',
     width: 75,
     valueGetter: 'node.rowIndex + 1',
-    cellClass: 'ag-first-cell-column'
+    cellClass: 'ag-first-cell-column',
+    filter: false
 };
 
 @Component({
@@ -17,19 +19,11 @@ export const SPREADSHEET_COLDEF_INDEX: ColDef = {
     styleUrls: ['./spreadsheet.component.scss'],
     imports: [AgGridAngular]
 })
-export class SpreadsheetComponent {
+export class SpreadsheetComponent implements OnDestroy {
 
-    constructor(
-        private readonly breakpointObserver: BreakpointObserverService,
-    ) {
+    constructor(private readonly spreadsheetFilterService: SpreadsheetFilterService) {
         this.defaultColDef = SpreadsheetComponent.createDefaultColDef();
     }
-
-    private static readonly MAX_COL_SM_SCREEN = 2;
-    private static readonly MAX_COL_MD_SCREEN = 3;
-    private static readonly MAX_COL_LG_SCREEN = 6;
-    private static readonly MAX_COL_XL_SCREEN = 8;
-    private static readonly MAX_COL_XXL_SCREEN = 10;
 
     @ViewChild(AgGridAngular) grid?: AgGridAngular;
 
@@ -46,39 +40,41 @@ export class SpreadsheetComponent {
     public defaultColDef: ColDef;
 
     /**
-     * Méthode qui initialise le tri
+     * Méthode qui initialise le tri et le filtre par défaut de toutes les colonnes
      * @private
      */
     private static createDefaultColDef(): ColDef {
         return {
             sortable: true,
             resizable: true,
+            filter: ColumnFilterComponent,
         };
     }
 
-    fitColumnSize(): void {
-        if (this.columnDefs.length <= this.mediaSizeGestion()) {
-            this.grid?.api.sizeColumnsToFit();
-        }
+    autoSizeColumns(): void {
+        this.grid?.api.autoSizeAllColumns();
     }
 
-    private mediaSizeGestion(): number {
-        const mediaSize = this.breakpointObserver.getMediaSize();
-        if (mediaSize.isSm) {
-            return SpreadsheetComponent.MAX_COL_SM_SCREEN;
-        }
-        if (mediaSize.isMd) {
-            return SpreadsheetComponent.MAX_COL_MD_SCREEN;
-        }
-        if (mediaSize.isLg) {
-            return SpreadsheetComponent.MAX_COL_LG_SCREEN;
-        }
-        if (mediaSize.isXl) {
-            return SpreadsheetComponent.MAX_COL_XL_SCREEN;
-        }
-
-        return SpreadsheetComponent.MAX_COL_XXL_SCREEN;
+    /**
+     * Déclenché sur l'événement ag-grid gridReady : autosize des colonnes puis
+     * enregistrement de la GridApi auprès du service partagé.
+     */
+    onGridReady(): void {
+        this.autoSizeColumns();
+        this.spreadsheetFilterService.registerGridApi(this.grid?.api ?? null);
     }
 
+    /**
+     * Déclenché sur l'événement ag-grid filterChanged : autosize des colonnes puis
+     * recalcul de l'état « au moins un filtre actif ».
+     */
+    onFilterChanged(): void {
+        this.autoSizeColumns();
+        this.spreadsheetFilterService.refreshFilterState();
+    }
+
+    ngOnDestroy(): void {
+        this.spreadsheetFilterService.unregisterGridApi();
+    }
 
 }

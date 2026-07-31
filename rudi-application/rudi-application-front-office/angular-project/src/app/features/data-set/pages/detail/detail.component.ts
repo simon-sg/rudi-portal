@@ -25,6 +25,7 @@ import {MAP_PROTOCOLS_SUPPORTED} from '@core/services/map/map-protocols';
 import {PageTitleService} from '@core/services/page-title.service';
 import {PropertiesMetierService} from '@core/services/properties-metier.service';
 import {SnackBarService} from '@core/services/snack-bar.service';
+import {SpreadsheetFilterService} from '@core/services/data-set/spreadsheet-filter.service';
 import {ThemeCacheService} from '@core/services/theme-cache.service';
 import {
     SuccessRestrictedRequestDialogComponent
@@ -47,6 +48,7 @@ import {ALL_TYPES} from '@shared/models/title-icon-type';
 import {MetadataUtils} from '@shared/utils/metadata-utils';
 import {ObservableUtils} from '@shared/utils/observable-utils';
 import saveAs from 'file-saver';
+import {GridApi} from 'ag-grid-community';
 import {ConnectorConnectorParameters, Licence, LicenceStandard, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
 import * as mediaType from 'micro_service_modules/api-kaccess/model/media';
 import {Project} from 'micro_service_modules/projekt/projekt-model';
@@ -89,6 +91,18 @@ export class DetailComponent implements OnInit {
     mediaToDisplayTable: Media;
     mediaToDisplayMap: Media;
     mapHasError: boolean = false;
+
+    /**
+     * Vrai quand l'onglet « Données tabulaires » (spreadsheet) est l'onglet actif de la page.
+     * Mis à jour par onActiveTabChange sur l'événement (activeTabChange) d'app-tabs.
+     */
+    isSpreadsheetTabActive: boolean = false;
+
+    /**
+     * Vrai quand au moins un filtre de colonne est actif dans le tableau ag-grid affiché.
+     * Alimenté par l'observable SpreadsheetFilterService.isFilterActive$.
+     */
+    isSpreadsheetFilterActive: boolean = false;
 
     /**
      * Liste des médias éligibles à l'affichage tabulaire (CSV/Excel), pour le sélecteur de fichier
@@ -139,7 +153,8 @@ export class DetailComponent implements OnInit {
         private readonly propertiesMetierService: PropertiesMetierService,
         private readonly pageTitleService: PageTitleService,
         private readonly uriComponentCodec: URIComponentCodec,
-        private readonly logService: LogService
+        private readonly logService: LogService,
+        private readonly spreadsheetFilterService: SpreadsheetFilterService
     ) {
         this.mediaSize = this.breakpointObserverService.getMediaSize();
         iconRegistryService.addAllSvgIcons(ALL_TYPES);
@@ -340,6 +355,12 @@ export class DetailComponent implements OnInit {
                 );
             }
         });
+
+        // Suivi de l'état « au moins un filtre de colonne actif » du tableau ag-grid, exposé par
+        // SpreadsheetFilterService (mis à jour par SpreadsheetComponent sur gridReady/filterChanged).
+        this.spreadsheetFilterService.isFilterActive$.subscribe(isFilterActive => {
+            this.isSpreadsheetFilterActive = isFilterActive;
+        });
     }
 
     /**
@@ -459,6 +480,48 @@ export class DetailComponent implements OnInit {
             const nomZip = this.uriComponentCodec.normalizeString(this.metadata.resource_title) + '.zip';
             saveAs(zipBlob, nomZip);
         });
+    }
+
+    /**
+     * Déclenché sur l'événement (activeTabChange) d'app-tabs : mémorise si l'onglet actif est
+     * l'onglet « Données tabulaires », identifié de manière fiable par son icône 'tabulated-data'
+     * (plutôt que par son libellé traduit qui dépend de la langue).
+     * @param tab l'onglet devenu actif.
+     */
+    onActiveTabChange(tab: TabComponent): void {
+        this.isSpreadsheetTabActive = tab?.icon === 'tabulated-data';
+    }
+
+    /**
+     * Télécharge en CSV les lignes actuellement filtrées du tableau ag-grid de l'onglet
+     * « Données tabulaires ». L'export natif ag-grid respecte le filtre et le tri en cours.
+     */
+    downloadSelectionAsCsv(): void {
+        const gridApi: GridApi = this.spreadsheetFilterService.currentGridApi;
+        if (!gridApi) {
+            return;
+        }
+        this.clickMenuFormatTrigger.closeMenu();
+        gridApi.exportDataAsCsv({
+            fileName: this.uriComponentCodec.normalizeString(this.metadata.resource_title) + '.csv'
+        });
+    }
+
+    /**
+     * Télécharge en JSON (indenté) les lignes actuellement filtrées du tableau ag-grid de l'onglet
+     * « Données tabulaires ».
+     */
+    downloadSelectionAsJson(): void {
+        const gridApi: GridApi = this.spreadsheetFilterService.currentGridApi;
+        if (!gridApi) {
+            return;
+        }
+        this.clickMenuFormatTrigger.closeMenu();
+        const rows: unknown[] = [];
+        gridApi.forEachNodeAfterFilter(node => rows.push(node.data));
+        const blob = new Blob([JSON.stringify(rows, null, 2)], {type: 'application/json'});
+        const fileName = this.uriComponentCodec.normalizeString(this.metadata.resource_title) + '.json';
+        saveAs(blob, fileName);
     }
 
     /**

@@ -1,0 +1,90 @@
+:host {
+    display: block;
+    width: 240px;
+}
+
+.column-filter {
+    font-size: 13px;
+    color: var(--primary-text);
+}
+
+.column-filter-search-input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 8px;
+    margin-bottom: 8px;
+    border: 1px solid var(--blocks-and-menus-outline);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--primary-text);
+    background-color: var(--surface-color);
+
+    &::placeholder {
+        color: var(--primary-text-light);
+    }
+
+    &:focus {
+        outline: var(--focus) solid 1px;
+        outline-offset: 0;
+    }
+}
+
+.column-filter-select-all {
+    padding-bottom: 6px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--blocks-and-menus-outline);
+}
+
+.column-filter-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 2px;
+    cursor: pointer;
+    user-select: none;
+
+    input[type='checkbox'] {
+        flex-shrink: 0;
+        margin: 0;
+        cursor: pointer;
+        accent-color: var(--primary-color);
+    }
+
+    span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+.column-filter-values {
+    max-height: 220px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.column-filter-no-results {
+    padding: 8px 2px;
+    color: var(--primary-text-light);
+}
+
+.column-filter-footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--blocks-and-menus-outline);
+    text-align: right;
+}
+
+.column-filter-clear {
+    padding: 4px 12px;
+    border: 1px solid var(--blocks-and-menus-outline);
+    border-radius: 4px;
+    background: none;
+    font-size: 13px;
+    color: var(--primary-color);
+    cursor: pointer;
+
+    &:hover {
+        background-color: var(--focus-background);
+    }
+}

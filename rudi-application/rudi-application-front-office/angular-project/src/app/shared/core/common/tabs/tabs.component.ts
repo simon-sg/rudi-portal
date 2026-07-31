@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import {AfterViewInit, Component, ContentChild, ContentChildren, Inject, QueryList, ViewChild, ViewContainerRef, DOCUMENT} from '@angular/core';
+import {AfterViewInit, Component, ContentChild, ContentChildren, EventEmitter, Inject, Output, QueryList, ViewChild, ViewContainerRef, DOCUMENT} from '@angular/core';
 import {BreakpointObserverService, MediaSize} from '@core/services/breakpoint-observer.service';
 import {TabComponent} from '@shared/core/common/tab/tab.component';
 import {WorkInProgressComponent} from '@shared/core/common/work-in-progress/work-in-progress.component';
@@ -36,6 +36,13 @@ export class TabsComponent implements AfterViewInit {
     customLayoutTabContent: TabContentDirective;
     mediaSize: MediaSize;
 
+    /**
+     * Émis à chaque changement d'onglet actif, y compris lors de la sélection automatique du
+     * premier onglet dans {@link ngAfterViewInit}. Porte le {@link TabComponent} devenu actif.
+     */
+    @Output()
+    activeTabChange = new EventEmitter<TabComponent>();
+
     get selectedTab(): TabComponent {
         return this.tabs
             .find((tab) => tab.active);
@@ -69,6 +76,7 @@ export class TabsComponent implements AfterViewInit {
             this.tabs.toArray().forEach(tab => tab.active = false);
             tabToSelect.active = true;
             this.displayTab(tabToSelect);
+            this.activeTabChange.emit(tabToSelect);
         }
     }
 
