@@ -707,7 +707,8 @@
         "mapDataTab": {
             "searchAddressTitle": "Recherche par adresse: ",
             "searchAddressPlaceholder": "Recherche par nom de lieu",
-            "error": "Les données ne sont pas visibles au format carte."
+            "error": "Les données ne sont pas visibles au format carte.",
+            "panelWidth": "Largeur du panneau"
         },
         "administrationTab": {
             "title": "Gestion de l'organisation",

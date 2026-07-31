@@ -11,7 +11,7 @@ import {
     getStyles,
     getVersion
 } from '@shared/core/maps/map/map.media.layer.function';
-import {LINE_STYLE, POINT_STYLE, POLYGON_STYLE} from '@shared/core/maps/map/map.style.function';
+import {createColoredVectorStyle, LINE_STYLE, POINT_STYLE, POLYGON_STYLE} from '@shared/core/maps/map/map.style.function';
 import {Media} from 'micro_service_modules/api-kaccess';
 import {LayerInformation} from 'micro_service_modules/konsult/konsult-model';
 import {getTopLeft, getWidth} from 'ol/extent';
@@ -105,8 +105,9 @@ export function createWmsLayer(wmsUrl: string, layerName: string): BaseLayer {
 /**
  * Création d'un layer à partir d'un contenu GeoJSON
  * @param geojsonObject le contenu pour créer le layer
+ * @param color couleur hexadécimale de la couche (facultative : si absente, style fixe styleFunction)
  */
-export function createGeoJsonLayer(geojsonObject: JSON): BaseLayer {
+export function createGeoJsonLayer(geojsonObject: JSON, color?: string): BaseLayer {
     return new VectorLayer<VectorSource<Geometry>>({
         source: new VectorSource({
             // Sans featureProjection, readFeatures ne reprojette pas : les coordonnées EPSG:4326
@@ -115,7 +116,7 @@ export function createGeoJsonLayer(geojsonObject: JSON): BaseLayer {
             // projection, à des milliers de km de la zone affichée, donc invisibles à l'écran.
             features: new GeoJSON().readFeatures(geojsonObject, {featureProjection: DEFAULT_VIEW_PROJECTION}),
         }),
-        style: styleFunction
+        style: color != null ? createColoredVectorStyle(color) : styleFunction
     });
 }
 
@@ -203,8 +204,9 @@ export class MapLayerFunction {
      * Création d'un layer de données de JDD au format WFS
      * @param globalId uuid du JDD
      * @param media ID du média qui est du WFS
+     * @param color couleur hexadécimale de la couche (facultative : si absente, style fixe styleFunction)
      */
-    createWfsDataLayer(globalId: string, media: Media): BaseLayer {
+    createWfsDataLayer(globalId: string, media: Media, color?: string): BaseLayer {
         const layerName = getLayerName(media);
         const format = getFormat(media);
         const version = getVersion(media);
@@ -230,17 +232,18 @@ export class MapLayerFunction {
 
         return new VectorLayer<VectorSource<Geometry>>({
             source: vectorSource,
-            style: styleFunction
+            style: color != null ? createColoredVectorStyle(color) : styleFunction
         });
     }
 
     /**
      * Création d'un layer de données de JDD au format GeoJSON
      * @param media le média geojson
+     * @param color couleur hexadécimale de la couche (facultative : si absente, style fixe styleFunction)
      */
-    createGeojsonDataLayer(media: Media): Observable<BaseLayer> {
+    createGeojsonDataLayer(media: Media, color?: string): Observable<BaseLayer> {
         return this.displayMapService.downloadGeojson(media.connector.url).pipe(
-            map((geojson: JSON) => createGeoJsonLayer(geojson))
+            map((geojson: JSON) => createGeoJsonLayer(geojson, color))
         );
     }
 

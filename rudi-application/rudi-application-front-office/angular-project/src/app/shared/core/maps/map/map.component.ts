@@ -509,18 +509,21 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
      */
     private buildMediaLayer(media: Media): void {
         const mediaId = media.media_id;
+        // Même lookup par media_id que dans addMediaLayer : récupère la couleur de palette attribuée
+        // au média par MapTabComponent (null pour les couches raster, non transmise aux couches WMS/WMTS).
+        const color = this.mediaLayers?.find(layerState => layerState.media.media_id === mediaId)?.color ?? null;
         if (media.connector.interface_contract === MAP_PROTOCOLS.WMS) {
             this.addMediaLayer(mediaId, this.mapLayerFunction.createWmsDataLayer(this.metadata.global_id, media));
         } else if (media.connector.interface_contract === MAP_PROTOCOLS.WMTS) {
             this.addMediaLayer(mediaId, this.mapLayerFunction.createWmtsDataLayer(this.metadata.global_id, media));
         } else if (media.connector.interface_contract === MAP_PROTOCOLS.WFS) {
-            const layer = this.mapLayerFunction.createWfsDataLayer(this.metadata.global_id, media);
+            const layer = this.mapLayerFunction.createWfsDataLayer(this.metadata.global_id, media, color);
             this.interactiveMediaLayers.add(layer);
             this.addMediaLayer(mediaId, layer);
         } else if (media.media_type === MediaTypeEnum.File) {
             const mediaFile: MediaFile = media as MediaFile;
             if (mediaFile.file_type === FileTypes.GEO_JSON) {
-                this.mapLayerFunction.createGeojsonDataLayer(media).subscribe({
+                this.mapLayerFunction.createGeojsonDataLayer(media, color).subscribe({
                     next: (baseLayer: BaseLayer) => {
                         // Le téléchargement du GeoJSON est asynchrone : la couche est ajoutée même
                         // si l'utilisateur a décoché/re-coché entre-temps (les couches ne sont

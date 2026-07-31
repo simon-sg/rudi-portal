@@ -10,11 +10,13 @@ import {DisplayMapService} from '@core/services/data-set/display-map.service';
 import {KonsultMetierService} from '@core/services/konsult-metier.service';
 import {LogService} from '@core/services/log.service';
 import {MAP_CONNECTOR_PARAMETERS_REQUIRED} from '@core/services/map/map-connector-required-parameters';
-import {TranslatePipe} from '@ngx-translate/core';
+import {MAP_PROTOCOLS} from '@core/services/map/map-protocols';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ErrorBoxComponent} from '@shared/core/common/error-box/error-box.component';
 import {LoaderComponent} from '@shared/core/common/loader/loader.component';
 import {MapComponent} from '@shared/core/maps/map/map.component';
-import {MapLayerState} from '@shared/core/maps/map/map-layer-state';
+import {LAYER_COLOR_PALETTE, MapLayerState} from '@shared/core/maps/map/map-layer-state';
+import {getLayerName} from '@shared/core/maps/map/map.media.layer.function';
 import {ConnectorConnectorParameters, Media, MediaFile, Metadata} from 'micro_service_modules/api-kaccess';
 import {LayerInformation} from 'micro_service_modules/konsult/konsult-model';
 import {switchMap} from 'rxjs/operators';
@@ -46,8 +48,12 @@ export class MapTabComponent implements OnInit {
     @Input()
     candidates: Media[] = [];
 
-    /** Utilisé par le template pour distinguer le libellé FILE (extension) du libellé SERVICE (contrat). */
-    readonly mediaType = MediaTypeEnum;
+    /** Largeur courante du panneau de couches (barre latérale), ajustable par le slider du panneau. */
+    panelWidthPx = 320;
+
+    /** Bornes du slider de largeur du panneau de couches. */
+    readonly PANEL_MIN_WIDTH_PX = 220;
+    readonly PANEL_MAX_WIDTH_PX = 560;
 
     /**
      * États des couches cartographiables (un par candidat), transmis à app-map via
@@ -67,7 +73,8 @@ export class MapTabComponent implements OnInit {
         private readonly datasetAccessService: DataSetAccessService,
         private readonly displayMapService: DisplayMapService,
         private readonly konsultMetierService: KonsultMetierService,
-        private readonly logService: LogService
+        private readonly logService: LogService,
+        private readonly translateService: TranslateService
     ) {
     }
 
@@ -130,6 +137,43 @@ export class MapTabComponent implements OnInit {
     }
 
     /**
+     * Change la largeur du panneau de couches (barre latérale), pilotée par le slider du panneau.
+     * @param px nouvelle largeur en pixels (bornée par PANEL_MIN_WIDTH_PX / PANEL_MAX_WIDTH_PX)
+     */
+    setPanelWidth(px: number): void {
+        this.panelWidthPx = px;
+    }
+
+    /**
+     * Libellé principal d'une couche dans le panneau. Priorité au media_caption (nom de couche
+     * informatif fourni par les métadonnées) s'il est présent ; sinon, comportement historique :
+     * FILE → media_name sinon 'Fichier (extension)', SERVICE → 'API (interface_contract)'.
+     * @param media le média candidat
+     */
+    getLayerLabel(media: Media): string {
+        if (media.media_caption && media.media_caption.trim()) {
+            return media.media_caption.trim();
+        }
+        if (media.media_type === MediaTypeEnum.File) {
+            return media.media_name ?? `${this.translateService.instant('common.fichier')} (${this.getMediaFileExtension(media)})`;
+        }
+        return `${this.translateService.instant('metaData.service')} (${media.connector?.interface_contract})`;
+    }
+
+    /**
+     * Nom technique de couche (connector_parameters['layer'], ex. un typename WFS) affiché en
+     * sous-titre discret sous le libellé principal. null si absent ou égal à "n/a".
+     * @param media le média candidat
+     */
+    getLayerTechnicalName(media: Media): string | null {
+        const technicalName = getLayerName(media);
+        if (technicalName == null || technicalName.trim().toLowerCase() === 'n/a') {
+            return null;
+        }
+        return technicalName;
+    }
+
+    /**
      * Construit l'état initial des couches depuis les candidats : toutes masquées à opacité 1, sauf
      * exactement une visible — celle qui correspond à mediaToDisplay si elle est affichable, sinon
      * la première sans erreur (un candidat en erreur ne peut pas être visible : sa case est forcée
@@ -137,11 +181,18 @@ export class MapTabComponent implements OnInit {
      * @private
      */
     private buildInitialLayerStates(): MapLayerState[] {
+        // Compteur de couleurs incrémenté UNIQUEMENT pour les candidats vectoriels (WFS/GeoJSON) :
+        // les candidats raster (WMS/WMTS) n'ont pas de couleur (color: null) et ne consomment pas
+        // d'entrée de la palette.
+        let colorIndex = 0;
         const states: MapLayerState[] = this.candidates.map(candidate => ({
             media: candidate,
             visible: false,
             opacity: 1,
-            hasError: this.computeMediaError(candidate)
+            hasError: this.computeMediaError(candidate),
+            color: this.isVectorLayerCandidate(candidate)
+                ? LAYER_COLOR_PALETTE[colorIndex++ % LAYER_COLOR_PALETTE.length]
+                : null
         }));
 
         let defaultIndex = -1;
@@ -185,6 +236,20 @@ export class MapTabComponent implements OnInit {
         }
         const connectorParameters: ConnectorConnectorParameters[] = media.connector?.connector_parameters;
         return !connectorParameters || !this.hasAllRequiredKeys(connectorParameters, MAP_CONNECTOR_PARAMETERS_REQUIRED);
+    }
+
+    /**
+     * Vrai si le candidat est rendu côté client à partir de features vectorielles (GeoJSON FILE ou
+     * WFS SERVICE), donc éligible à une couleur de palette appliquée sur la carte. Les couches
+     * raster (WMS/WMTS) sont rendues par le service distant : pas de couleur cliente possible.
+     * @private
+     */
+    private isVectorLayerCandidate(media: Media): boolean {
+        const mediaFile = media as MediaFile;
+        if (mediaFile.file_type === FileTypes.GEO_JSON) {
+            return true;
+        }
+        return media.connector?.interface_contract === MAP_PROTOCOLS.WFS;
     }
 
     // Verification que toutes les cles obligatoires sont presentes et valides
