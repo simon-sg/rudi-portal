@@ -1,47 +1,77 @@
 <mat-card class="main-container">
   <app-loader [allPage]="false" [isLight]="true" [noText]="true" [active]="isMapLoading"></app-loader>
   @if (!isMapLoading && !isErrorAccess) {
-    @if (candidates && candidates.length > 1) {
-      <div class="map-media-select">
-        <mat-form-field appearance="outline" subscriptSizing="dynamic">
-          <mat-label>{{ 'common.fichierAAfficher'|translate }}</mat-label>
-          <mat-select [value]="selectedMedia" (selectionChange)="onMediaSelected($event)">
-            @for (candidate of candidates; track candidate) {
-              <mat-option [value]="candidate">
-                @if (candidate.media_type === mediaType.File) {
-                  @if (candidate.media_name) {
-                    {{ candidate.media_name }}
-                  } @else {
-                    {{ 'common.fichier'|translate }} ({{ getMediaFileExtension(candidate) }})
-                  }
-                } @else if (candidate.media_caption) {
-                  {{ candidate.media_caption }}
-                } @else {
-                  {{ 'metaData.service'|translate }} ({{ candidate.connector?.interface_contract }})
-                }
-              </mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-      </div>
-    }
     <div class="map-header"></div>
-    @if (!hasMediaError) {
-      <div class="map-container">
-        <app-map [mapId]="'rudi-map-tab'"
-          [baseLayers]="baseLayers"
-          [hasSearchAddress]="true"
-          [metadata]="metadata"
-          [media]="selectedMedia"
+    <div class="map-body" [class.resizing]="isResizingPanel" #mapBody>
+      @if (!hasMediaError) {
+        <div class="map-container">
+          <app-map [mapId]="'rudi-map-tab'"
+            [baseLayers]="baseLayers"
+            [hasSearchAddress]="true"
+            [metadata]="metadata"
+            [mediaLayers]="layerStates"
+            >
+          </app-map>
+        </div>
+      } @else {
+        <app-error-box
+          [text]="'metaData.mapDataTab.error' | translate"
           >
-        </app-map>
-      </div>
-    } @else {
-      <app-error-box
-        [text]="'metaData.mapDataTab.error' | translate"
-        >
-      </app-error-box>
-    }
+        </app-error-box>
+      }
+      @if (candidates && candidates.length > 1) {
+        <div
+          class="map-panel-resizer"
+          (pointerdown)="startResizingPanel($event)"
+          >
+        </div>
+        <div class="map-media-select" [style.width.px]="panelWidthPx">
+          @for (layerState of layerStates; track layerState.media.media_id) {
+            <div class="map-layer-row">
+              <mat-checkbox
+                class="map-layer-checkbox"
+                [checked]="layerState.visible"
+                [disabled]="layerState.hasError"
+                (change)="toggleLayerVisibility(layerState.media.media_id)"
+                >
+              </mat-checkbox>
+              <div
+                class="map-layer-texts"
+                [class.disabled]="layerState.hasError"
+                (click)="!layerState.hasError && toggleLayerVisibility(layerState.media.media_id)"
+                >
+                <span class="map-layer-label">
+                  @if (layerState.color) {
+                    <span class="map-layer-color-dot" [style.background-color]="layerState.color"></span>
+                  }
+                  <span class="map-layer-label-text">{{ getLayerLabel(layerState.media) }}</span>
+                </span>
+                @if (getLayerTechnicalName(layerState.media); as technicalName) {
+                  <span class="map-layer-technical-name">{{ technicalName }}</span>
+                }
+              </div>
+              @if (layerState.hasError) {
+                <mat-icon
+                  class="layer-error-icon"
+                  [matTooltip]="'metaData.mapDataTab.error' | translate"
+                  >{{ 'error' }}</mat-icon>
+              } @else if (layerState.visible) {
+                <mat-slider
+                  class="map-layer-slider"
+                  min="0" max="100" step="1"
+                  >
+                  <input
+                    matSliderThumb
+                    [value]="layerState.opacity * 100"
+                    (input)="setLayerOpacity(layerState.media.media_id, $any($event.target).value / 100)"
+                    >
+                </mat-slider>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
   }
   @if (isErrorAccess) {
     <app-error-box

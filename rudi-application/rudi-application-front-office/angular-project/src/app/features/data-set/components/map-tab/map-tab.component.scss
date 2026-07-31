@@ -3,6 +3,8 @@
 }
 
 .map-container {
+    flex: 1;
+    min-width: 0;
     width: 100%;
     height: 700px;
 }
@@ -14,17 +16,129 @@
     border-top-right-radius: 5px;
 }
 
-// Sélecteur de fichier au-dessus de la carte. Volontairement HORS de .map-header (bande bleue
-// décorative) : y loger un mat-form-field posait un problème de lisibilité récurrent (étiquette
-// flottante à cheval sur la bordure du champ, moitié sur fond blanc moitié sur fond bleu). Fond
-// clair standard de la carte, même traitement que le sélecteur de l'onglet Tableau
-// (spreadsheet-tab.component.scss :: .table-media-select).
-.map-media-select {
-    padding: 16px 16px 0;
-    margin-bottom: 20px;
+// Conteneur flex ligne : la carte (qui prend l'espace restant) et, à côté, le panneau de couches en
+// barre latérale à largeur ajustable par glisser-déposer (.map-panel-resizer). Si le panneau n'est
+// pas affiché (0 ou 1 candidat), la carte occupe toute la largeur, comportement visuel identique à
+// l'ancienne mise en page. .resizing (pendant un drag, voir MapTabComponent.isResizingPanel) évite
+// que le survol d'iframes/la sélection de texte n'interrompe le geste.
+.map-body {
+    display: flex;
+    align-items: stretch;
 
-    mat-form-field {
-        width: 100%;
-        max-width: 420px;
+    &.resizing {
+        cursor: col-resize;
+        user-select: none;
     }
+}
+
+// Poignée de redimensionnement entre la carte et le panneau : cible de clic large (8px) autour
+// d'un trait fin, pour rester facile à attraper sans être visuellement épaisse.
+.map-panel-resizer {
+    flex-shrink: 0;
+    width: 8px;
+    cursor: col-resize;
+    touch-action: none;
+    position: relative;
+
+    &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 3px;
+        width: 1px;
+        background: var(--blocks-and-menus-outline);
+    }
+
+    &:hover::after,
+    .map-body.resizing &::after {
+        left: 2px;
+        width: 3px;
+        background: var(--primary-color);
+    }
+}
+
+// Panneau de couches en barre latérale À DROITE de la carte (case à cocher visible + slider
+// d'opacité par couche) : même hauteur que la carte (700px), défilement vertical interne si la
+// liste dépasse cette hauteur.
+.map-media-select {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 16px;
+    max-height: 700px;
+    overflow-y: auto;
+}
+
+.map-layer-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--blocks-and-menus-outline);
+
+    &:last-child {
+        border-bottom: none;
+    }
+}
+
+// Case seule (sans libellé projeté) : le libellé est un sibling .map-layer-texts, en dehors de
+// mat-checkbox, pour rester un flex-item ordinaire dont min-width:0 est garanti — le wrapper de
+// libellé interne de mat-checkbox (mdc-form-field) ne propage pas toujours min-width:0 à son
+// contenu projeté, ce qui pouvait faire chevaucher un libellé long (sans espace) et le slider.
+.map-layer-checkbox {
+    flex-shrink: 0;
+}
+
+.map-layer-texts {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+
+    &.disabled {
+        cursor: default;
+    }
+}
+
+.map-layer-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.map-layer-label-text {
+    overflow-wrap: break-word;
+}
+
+// Sous-titre technique discret sous le libellé principal (nom de couche connector_parameters).
+.map-layer-technical-name {
+    font-size: 12px;
+    color: var(--secondary-text);
+    overflow-wrap: break-word;
+}
+
+// Pastille de couleur reliant la ligne du panneau à la couche dessinée sur la carte (même couleur).
+.map-layer-color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.map-layer-slider {
+    width: 96px;
+    flex-shrink: 0;
+}
+
+// Icône d'erreur discrète pour un candidat non affichable : même couleur d'erreur que le bloc
+// app-error-box utilisé ailleurs dans l'app (error-box.component.scss :: .error-zone).
+.layer-error-icon {
+    color: #d04838;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
 }
