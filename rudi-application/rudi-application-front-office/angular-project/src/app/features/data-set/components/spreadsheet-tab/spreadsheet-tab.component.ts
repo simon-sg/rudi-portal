@@ -12,7 +12,7 @@ import {DisplayTableService} from '@core/services/data-set/display-table.service
 import {IconRegistryService} from '@core/services/icon-registry.service';
 import {KonsultMetierService} from '@core/services/konsult-metier.service';
 import {LogService} from '@core/services/log.service';
-import {TranslatePipe} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {ErrorBoxComponent} from '@shared/core/common/error-box/error-box.component';
 import {LoaderComponent} from '@shared/core/common/loader/loader.component';
 import {ErrorWithCause} from '@shared/models/error-with-cause';
@@ -66,7 +66,8 @@ export class SpreadsheetTabComponent implements OnInit {
         private readonly iconRegistryService: IconRegistryService,
         private readonly logService: LogService,
         private readonly datasetAccessService: DataSetAccessService,
-        private readonly konsultMetierService: KonsultMetierService
+        private readonly konsultMetierService: KonsultMetierService,
+        private readonly translateService: TranslateService
     ) {
         iconRegistryService.addAllSvgIcons(ALL_TYPES);
     }
@@ -106,6 +107,17 @@ export class SpreadsheetTabComponent implements OnInit {
      */
     getMediaFileExtension(media: Media): string {
         return this.konsultMetierService.getMediaFileExtension(media);
+    }
+
+    /**
+     * Libellé complet d'un média candidat (nom de fichier, potentiellement long), utilisé en
+     * infobulle du sélecteur puisque le nom affiché peut être tronqué visuellement.
+     */
+    getMediaLabel(media: Media): string {
+        if (!media) {
+            return '';
+        }
+        return media.media_name || `${this.translateService.instant('common.fichier')} (${this.getMediaFileExtension(media)})`;
     }
 
     /**

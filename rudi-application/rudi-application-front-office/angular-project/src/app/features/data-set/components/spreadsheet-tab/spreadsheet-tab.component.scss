@@ -1,6 +1,7 @@
 @use "common-style";
 
 .search-box-container {
+    width: 100%;
 
     /* clears the ‘X’ from Chrome */
     input[type="search"]::-webkit-search-decoration,
@@ -63,7 +64,7 @@
     }
 
     .search-size {
-        width: 600px;
+        width: 100%;
     }
 
     .search-box {
@@ -100,11 +101,15 @@
 .table-media-select {
     mat-form-field {
         width: 100%;
-        max-width: 420px;
     }
 }
 
 .spreadsheet-toolbar {
     column-gap: 24px;
     row-gap: 10px;
+
+    > * {
+        flex: 1 1 0;
+        min-width: 240px;
+    }
 }
