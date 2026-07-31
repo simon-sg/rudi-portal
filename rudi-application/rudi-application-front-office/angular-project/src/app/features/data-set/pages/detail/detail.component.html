@@ -86,22 +86,28 @@
               <mat-menu #selectionFormatMenu="matMenu" role="menu" yPosition="below">
                     <div (click)="$event.stopPropagation()" class="rudi-select-panel d-flex flex-column">
                       <div class="menu-radioGroup-scrollable">
-                        <h4 class="menu-libelle">{{ 'availableFormats.telechargerSelection'|translate }}</h4>
-                        <button
-                          (click)="downloadSelectionAsCsv()"
-                          class="button menu-btn-download"
-                          mat-raised-button
-                          type="button">
-                          {{ 'availableFormats.selectionCsv'|translate }}
-                        </button>
-                        <button
-                          (click)="downloadSelectionAsJson()"
-                          class="button menu-btn-download"
-                          mat-raised-button
-                          type="button">
-                          {{ 'availableFormats.selectionJson'|translate }}
-                        </button>
+                        <h4 class="menu-libelle">{{ 'availableFormats.formatsDisponibles'|translate }}</h4>
+                        <mat-radio-group
+                          (click)="$event.stopPropagation()"
+                          [value]="selectionFormat"
+                          (change)="selectionFormat = $event.value"
+                          aria-label="Select an option"
+                          class="d-flex flex-column">
+                          <mat-radio-button value="csv" class="mb-2">
+                            {{ 'availableFormats.selectionCsv'|translate }}
+                          </mat-radio-button>
+                          <mat-radio-button value="json" class="mb-2">
+                            {{ 'availableFormats.selectionJson'|translate }}
+                          </mat-radio-button>
+                        </mat-radio-group>
                       </div>
+                      <button
+                        (click)="downloadSelection()"
+                        class="button menu-btn-download"
+                        mat-raised-button
+                        type="button">
+                        {{ 'availableFormats.telechargerSelection'|translate }}
+                      </button>
                     </div>
                   </mat-menu>
             </app-banner-button>

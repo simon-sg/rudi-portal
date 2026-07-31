@@ -6,6 +6,7 @@ import {MatCheckbox} from '@angular/material/checkbox';
 import {MatDialog} from '@angular/material/dialog';
 import {MatIcon} from '@angular/material/icon';
 import {MatMenu, MatMenuTrigger} from '@angular/material/menu';
+import {MatRadioButton, MatRadioGroup} from '@angular/material/radio';
 import {MatSidenavContainer, MatSidenavContent} from '@angular/material/sidenav';
 import {ActivatedRoute, Params, Router, RouterOutlet} from '@angular/router';
 import {FileTypes} from '@core/file-types';
@@ -68,7 +69,7 @@ const actionOnStartCreateLinkedDataset = 'ON_START_CREATE_LINKED_DATASET';
     selector: 'app-detail',
     templateUrl: './detail.component.html',
     styleUrls: ['./detail.component.scss'],
-    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, ErrorBoxComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, MatCheckbox, MatButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
+    imports: [CommonModule, MatSidenavContainer, MatSidenavContent, LoaderComponent, NgClass, PageHeadingComponent, TabsComponent, TabComponent, DatasetInformationsComponent, SpreadsheetTabComponent, MapTabComponent, ErrorBoxComponent, BannerButtonComponent, MatMenuTrigger, MatIcon, MatMenu, MatCheckbox, MatButton, MatRadioGroup, MatRadioButton, PopoverComponent, ProjectListComponent, RouterOutlet, TranslatePipe]
 })
 export class DetailComponent implements OnInit {
     MAX_DATASETS_DISPLAYED = 3;
@@ -103,6 +104,11 @@ export class DetailComponent implements OnInit {
      * Alimenté par l'observable SpreadsheetFilterService.isFilterActive$.
      */
     isSpreadsheetFilterActive: boolean = false;
+
+    /**
+     * Format choisi dans le menu « Télécharger la sélection » (choix radio CSV/JSON).
+     */
+    selectionFormat: 'csv' | 'json' = 'csv';
 
     /**
      * Liste des médias éligibles à l'affichage tabulaire (CSV/Excel), pour le sélecteur de fichier
@@ -493,10 +499,22 @@ export class DetailComponent implements OnInit {
     }
 
     /**
+     * Déclenché par le bouton unique du menu « Télécharger la sélection » : dispatche vers le
+     * format choisi dans le mat-radio-group (CSV par défaut).
+     */
+    downloadSelection(): void {
+        if (this.selectionFormat === 'json') {
+            this.downloadSelectionAsJson();
+        } else {
+            this.downloadSelectionAsCsv();
+        }
+    }
+
+    /**
      * Télécharge en CSV les lignes actuellement filtrées du tableau ag-grid de l'onglet
      * « Données tabulaires ». L'export natif ag-grid respecte le filtre et le tri en cours.
      */
-    downloadSelectionAsCsv(): void {
+    private downloadSelectionAsCsv(): void {
         const gridApi: GridApi = this.spreadsheetFilterService.currentGridApi;
         if (!gridApi) {
             return;
@@ -511,7 +529,7 @@ export class DetailComponent implements OnInit {
      * Télécharge en JSON (indenté) les lignes actuellement filtrées du tableau ag-grid de l'onglet
      * « Données tabulaires ».
      */
-    downloadSelectionAsJson(): void {
+    private downloadSelectionAsJson(): void {
         const gridApi: GridApi = this.spreadsheetFilterService.currentGridApi;
         if (!gridApi) {
             return;
