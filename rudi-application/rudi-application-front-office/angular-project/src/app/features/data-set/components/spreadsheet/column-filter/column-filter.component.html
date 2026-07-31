@@ -1,0 +1,44 @@
+<div class="column-filter">
+    <div class="column-filter-search">
+        <input
+            #searchInput
+            type="text"
+            class="column-filter-search-input"
+            [value]="searchText"
+            (input)="onSearchChange($event)"
+            placeholder="Rechercher..."
+            aria-label="Rechercher dans les valeurs"
+        >
+    </div>
+
+    <div class="column-filter-select-all">
+        <label class="column-filter-checkbox">
+            <input
+                type="checkbox"
+                [checked]="selectAllChecked"
+                [indeterminate]="selectAllIndeterminate"
+                (change)="onSelectAllChange($event)"
+            >
+            <span>Tout sélectionner</span>
+        </label>
+    </div>
+
+    <div class="column-filter-values">
+        @for (value of displayedValues; track value) {
+            <label class="column-filter-checkbox">
+                <input
+                    type="checkbox"
+                    [checked]="checkedValues.has(value)"
+                    (change)="onValueChange($event, value)"
+                >
+                <span class="column-filter-value" [title]="displayLabel(value)">{{ displayLabel(value) }}</span>
+            </label>
+        } @empty {
+            <div class="column-filter-no-results">Aucune valeur</div>
+        }
+    </div>
+
+    <div class="column-filter-footer">
+        <button type="button" class="column-filter-clear" (click)="onClear()">Effacer</button>
+    </div>
+</div>
