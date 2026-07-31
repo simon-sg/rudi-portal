@@ -460,6 +460,7 @@
         "thematique": "Thématique",
         "producteur": "Producteur",
         "typeFichier": "Type de fichier",
+        "rechercherProducteur": "Rechercher un producteur...",
         "couvertureTemporelle": "Couverture temporelle",
         "restrictedAccess": {
             "statut": "Statut",

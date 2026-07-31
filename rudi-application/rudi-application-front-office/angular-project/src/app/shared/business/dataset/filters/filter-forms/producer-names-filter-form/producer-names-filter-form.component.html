@@ -1,15 +1,21 @@
 @if (formGroup) {
+  <input
+    type="text"
+    class="filter-search-input"
+    [(ngModel)]="searchText"
+    [placeholder]="'filterBox.rechercherProducteur' | translate"
+    />
   <form [formGroup]="formGroup" class="filter-child">
     <div class="filter-child-form">
       <ul [class]="ulClass" [formArrayName]="formArrayName">
-        @for (producerName of items; track producerName; let i = $index) {
-          <li [formGroupName]="i">
+        @for (producer of filteredItems; track producer.item) {
+          <li [formGroupName]="producer.index">
             <mat-checkbox
-              [checked]="isChecked(producerName)"
-              [value]="producerName.value"
+              [checked]="isChecked(producer.item)"
+              [value]="producer.item.value"
               class="rudi-checkbox"
               formControlName="checked"
-              >{{producerName.value}} ({{counts[producerName.value]}})
+              >{{producer.item.value}} ({{counts[producer.item.value]}})
             </mat-checkbox>
           </li>
         }
