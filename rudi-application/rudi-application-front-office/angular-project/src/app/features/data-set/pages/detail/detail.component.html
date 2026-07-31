@@ -75,8 +75,7 @@
             </app-tab>
           }
           <!-- Boutton télécharger -->
-            @if (!isSelfdata && hasDownloadableMedia) {
-            @if (isSpreadsheetTabActive && isSpreadsheetFilterActive) {
+          @if (!isSelfdata && hasDownloadableMedia && isSpreadsheetTabActive && isSpreadsheetFilterActive) {
             <app-banner-button #clickMenuFormatTrigger="matMenuTrigger" [matMenuTriggerFor]="selectionFormatMenu">
               <div class="d-flex align-items-center">
                 <mat-icon class="icon-syle icon-save me-l">save_alt</mat-icon>
@@ -106,7 +105,8 @@
                     </div>
                   </mat-menu>
             </app-banner-button>
-            } @else {
+          }
+          @if (!isSelfdata && hasDownloadableMedia && !(isSpreadsheetTabActive && isSpreadsheetFilterActive)) {
             <app-banner-button #clickMenuFormatTrigger="matMenuTrigger" [matMenuTriggerFor]="formatMenu">
               <div class="d-flex align-items-center">
                 <mat-icon class="icon-syle icon-save me-l">save_alt</mat-icon>
@@ -147,7 +147,6 @@
                     </div>
                   </mat-menu>
             </app-banner-button>
-            }
           }
           <!-- Faire une demande d'information sur ses données personnelles detenues -->
           @if (isSelfdata) {
