@@ -18,13 +18,8 @@
     }
     @if (resourceTitle) {
       <div
-        class="dataset-info-resource_title">
-        @if (isRestricted) {
-          <mat-icon [svgIcon]="restrictedDatasetIcon"
-          class="svg-style"></mat-icon>
-        }
-        {{ resourceTitle }}
-      </div>
+        class="dataset-info-resource_title">@if (isRestricted) {<mat-icon [svgIcon]="restrictedDatasetIcon"
+          class="svg-style"></mat-icon>}{{ resourceTitle }}</div>
     }
   </div>
 </div>
