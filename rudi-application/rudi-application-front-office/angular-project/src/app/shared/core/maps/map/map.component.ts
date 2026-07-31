@@ -470,6 +470,11 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
                 } else {
                     layer.setVisible(true);
                     layer.setOpacity(state.opacity);
+                    // Sans ce render() explicite, une couche vectorielle re-masquée puis re-cochée
+                    // pouvait rester invisible à l'écran jusqu'au prochain pan/zoom (le canvas OL ne
+                    // se repeint pas toujours tout seul suite à un setVisible en dehors d'une
+                    // interaction utilisateur) — voir aussi addMediaLayer, même correctif.
+                    this.map.render();
                 }
             } else if (layer != null) {
                 layer.setVisible(false);
@@ -555,6 +560,10 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
         const state = this.mediaLayers?.find(layerState => layerState.media.media_id === mediaId);
         layer.setVisible(state?.visible ?? true);
         layer.setOpacity(state?.opacity ?? 1);
+        // Une couche fraîchement ajoutée à la carte (surtout après un chargement asynchrone, ex.
+        // GeoJSON) pouvait rester invisible tant qu'aucun pan/zoom ne forçait un repaint du canvas
+        // OL. render() force le repaint immédiatement, sans attendre une interaction utilisateur.
+        this.map.render();
     }
 
     private handleMapEvents(): void {
