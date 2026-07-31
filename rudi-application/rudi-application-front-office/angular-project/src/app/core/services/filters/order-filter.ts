@@ -11,7 +11,9 @@ export type OrderValue =
     'producer.organization_name' |
     '-producer.organization_name' |
     'dataset_dates.created' |
-    '-dataset_dates.created';
+    '-dataset_dates.created' |
+    'dataset_dates.updated' |
+    '-dataset_dates.updated';
 
 export const DEFAULT_VALUE: OrderValue = 'resource_title';
 

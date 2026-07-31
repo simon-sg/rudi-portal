@@ -135,7 +135,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     private initJdds(): void {
         this.filtersService.deleteAllFilters();
-        this.filtersService.orderFilter.value = '-dataset_dates.created';
+        this.filtersService.orderFilter.value = '-dataset_dates.updated';
         this.jddsIsLoading = true;
         this.konsultMetierService.searchMetadatas(
             this.filtersService.currentFilters,
