@@ -13,7 +13,7 @@
     <style>
         /* Masque la page tant que le CSS de personnalisation (customization.json > overrideCssFile)
            n'est pas résolu, pour éviter un flash des couleurs Rudi natives avant les couleurs
-           personnalisées. Levé par le script ci-dessous, avec un filet de sécurité 500 ms. */
+           personnalisées. Levé par le script ci-dessous, avec un filet de sécurité 3000 ms. */
         html.rudi-customization-pending {
             visibility: hidden;
         }
@@ -34,8 +34,10 @@
             root.classList.remove('rudi-customization-pending');
         }
 
-        // Ne jamais bloquer l'affichage plus de 500 ms si Konsult est lent ou indisponible.
-        var safetyTimeout = setTimeout(reveal, 500);
+        // Ne jamais bloquer l'affichage indéfiniment si Konsult est lent ou indisponible.
+        // 500 ms s'est révélé trop court : /konsult/v1/customizations peut prendre jusqu'à ~2.3 s
+        // (mesuré), ce qui faisait quand même apparaître le flash malgré ce garde-fou.
+        var safetyTimeout = setTimeout(reveal, 3000);
 
         fetch('/konsult/v1/customizations?lang=fr')
             .then(function (response) { return response.ok ? response.json() : null; })
