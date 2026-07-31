@@ -40,7 +40,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
 }
 
 .map-panel-width-label {
@@ -49,16 +49,24 @@
     white-space: nowrap;
 }
 
+// Largeur fixe (même approche que .map-layer-slider, dont le rendu est déjà éprouvé) plutôt que
+// flex:1/min-width:0, qui ne réservait pas de largeur intrinsèque au mat-slider (MDC) et le
+// rendait invisible dans cette rangée.
 .map-panel-width-slider {
-    flex: 1;
-    min-width: 0;
+    width: 140px;
+    flex-shrink: 0;
 }
 
 .map-layer-row {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 4px 0;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--blocks-and-menus-outline);
+
+    &:last-child {
+        border-bottom: none;
+    }
 }
 
 .map-layer-checkbox {

@@ -59,11 +59,10 @@
                   class="layer-error-icon"
                   [matTooltip]="'metaData.mapDataTab.error' | translate"
                   >{{ 'error' }}</mat-icon>
-              } @else {
+              } @else if (layerState.visible) {
                 <mat-slider
                   class="map-layer-slider"
                   min="0" max="100" step="1"
-                  [disabled]="!layerState.visible"
                   >
                   <input
                     matSliderThumb
