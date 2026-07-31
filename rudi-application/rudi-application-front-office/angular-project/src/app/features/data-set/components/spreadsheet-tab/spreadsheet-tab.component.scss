@@ -88,14 +88,23 @@
 .button {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--blocks-and-menus-outline);
+    height: 48px;
+    border: 1px solid #dee2e6;
     border-radius: 6px;
     padding: 6px 12px;
+    background-color: #fff;
+    color: #000;
     cursor: pointer;
 }
 
 .btn-outline {
     outline: none;
+
+    // Le thème sombre colore le libellé mat-checkbox (.mdc-label) en blanc, invisible sur le
+    // fond blanc de cette boîte désormais calquée sur les 2 champs voisins.
+    ::ng-deep .mdc-label {
+        color: #000;
+    }
 }
 
 .table-media-select {
