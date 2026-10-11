@@ -11,8 +11,10 @@ import org.rudi.microservice.kalim.core.bean.IntegrationRequestSearchCriteria;
 import org.rudi.microservice.kalim.core.bean.ProgressStatus;
 import org.rudi.microservice.kalim.service.integration.IntegrationRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -31,6 +33,9 @@ public class TreatmentScheduler {
 	@Autowired
 	private IntegrationRequestService integrationRequestService;
 
+	@Value("${rudi.kalim.scheduler.treatment.page.size:100}")
+	private Integer treatmentPageSize;
+
 	@Scheduled(fixedDelayString = "${rudi.kalim.scheduler.treatment.delay}")
 	public void handleIntegrationRequestReport() {
 
@@ -39,7 +44,8 @@ public class TreatmentScheduler {
 		IntegrationRequestSearchCriteria searchCriteria = new IntegrationRequestSearchCriteria();
 		searchCriteria.setProgressStatus(Arrays.asList(ProgressStatus.CREATED));
 		Page<IntegrationRequest> integrationRequests = integrationRequestService
-				.searchIntegrationRequests(searchCriteria, Pageable.unpaged());
+				.searchIntegrationRequests(searchCriteria,
+						PageRequest.of(0, treatmentPageSize, Sort.by(Sort.Direction.ASC, "id")));
 
 		if (CollectionUtils.isNotEmpty(integrationRequests.getContent())) {
 			log.info("TreatmentScheduler nothing find {}", integrationRequests.getTotalElements());
