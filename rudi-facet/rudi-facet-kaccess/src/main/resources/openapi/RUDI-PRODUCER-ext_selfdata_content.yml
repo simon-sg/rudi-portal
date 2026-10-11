@@ -120,12 +120,12 @@ components:
             Libellé du champ, visible dans le formulaire de saisie des données pivot.
           type: array
           items:
-            $ref: 'https://app.swaggerhub.com/apiproxy/registry/OlivierMartineau/RUDI-PRODUCER/1.4.0#/components/schemas/DictionaryEntry'
+            $ref: './RUDI-PRODUCER.yml#/components/schemas/DictionaryEntry'
         help:
           description: Aide à la saisie du champ (affiché sous le libellé).
           type: array
           items:
-            $ref: 'https://app.swaggerhub.com/apiproxy/registry/OlivierMartineau/RUDI-PRODUCER/1.4.0#/components/schemas/DictionaryEntry'
+            $ref: './RUDI-PRODUCER.yml#/components/schemas/DictionaryEntry'
         type:
           description: >
             Type du champ.
