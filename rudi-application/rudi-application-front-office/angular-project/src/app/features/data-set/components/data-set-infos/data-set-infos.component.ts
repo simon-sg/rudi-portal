@@ -29,7 +29,7 @@ import {GetBackendPropertyPipe} from '@shared/utils/pipes/get-backend-property.p
 import {ReplaceIfNullPipe} from '@shared/utils/pipes/replace-if-null.pipe';
 import saveAs from 'file-saver';
 import {
-    DictionaryEntry2,
+    DictionaryEntry,
     Licence,
     LicenceCustom,
     LicenceStandard,
@@ -455,8 +455,8 @@ export class DataSetInfosComponent implements OnInit {
         const matchingDatas = metadata.ext_metadata.ext_selfdata.ext_selfdata_content.matching_data;
         if (matchingDatas && matchingDatas.length > 0) {
             matchingDatas.forEach((matchingData: MatchingData) => {
-                const currentLangLabels = matchingData.label.filter((label: DictionaryEntry2) => label.lang === currentLanguage);
-                let labelsTxt = currentLangLabels.map((label: DictionaryEntry2) => label.text);
+                const currentLangLabels = matchingData.label.filter((label: DictionaryEntry) => label.lang === currentLanguage);
+                let labelsTxt = currentLangLabels.map((label: DictionaryEntry) => label.text);
 
                 // Pièce justificative nécessaire si données d'appariement de type : pièce-jointe
                 if (matchingData.type === TypeEnum.Attachment) {
