@@ -2,6 +2,7 @@ package org.rudi.microservice.apigateway.service.api.impl;
 
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.rudi.common.service.exception.AppServiceException;
 import org.rudi.common.service.util.ApplicationContext;
 import org.rudi.microservice.apigateway.core.bean.Api;
@@ -15,6 +16,7 @@ import org.rudi.microservice.apigateway.service.mapper.ApiMapper;
 import org.rudi.microservice.apigateway.storage.dao.api.ApiCustomDao;
 import org.rudi.microservice.apigateway.storage.dao.api.ApiDao;
 import org.rudi.microservice.apigateway.storage.entity.api.ApiEntity;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +46,12 @@ public class ApiServiceImpl implements ApiService {
 
 	private final ApiProcessor processor;
 
+	@Value("${apigateway.url-host-rewrite.from:}")
+	private String urlHostRewriteFrom;
+
+	@Value("${apigateway.url-host-rewrite.to:}")
+	private String urlHostRewriteTo;
+
 	@Override
 	public Page<Api> searchApis(ApiSearchCriteria searchCriteria, Pageable pageable) {
 		return apiMapper.entitiesToDto(apiCustomDao.searchApis(searchCriteria, pageable), pageable);
@@ -69,6 +77,7 @@ public class ApiServiceImpl implements ApiService {
 		entity.setUuid(UUID.randomUUID());
 		checkUnicity(entity);
 
+		rewriteApiUrlBeforeSave(entity);
 		ApiEntity savedEntity = apiDao.save(entity);
 		return apiMapper.entityToDto(savedEntity);
 	}
@@ -89,6 +98,7 @@ public class ApiServiceImpl implements ApiService {
 		}
 		apiMapper.dtoToEntity(api, entity);
 		processor.processBeforeUpdate(entity, api);
+		rewriteApiUrlBeforeSave(entity);
 		apiDao.save(entity);
 		return apiMapper.entityToDto(entity);
 	}
@@ -123,5 +133,34 @@ public class ApiServiceImpl implements ApiService {
 
 	protected ApiServiceImpl lookupMe() {
 		return (ApiServiceImpl) ApplicationContext.getBean(ApiService.class);
+	}
+
+	/**
+	 * Rewrite the API URL host:port if configured (no-op when
+	 * apigateway.url-host-rewrite.from is blank). Needed because Kalim's URL
+	 * validator only accepts "localhost" (rejects the "internal" TLD of
+	 * host.docker.internal), while the API gateway running in its own Docker
+	 * container needs host.docker.internal to actually reach the storage
+	 * service. Applying the rewrite only here, at persistence time, keeps
+	 * Kalim's validator happy upstream and lets the gateway resolve the real
+	 * host for its own outbound calls.
+	 */
+	private void rewriteApiUrlBeforeSave(ApiEntity entity) {
+		if (entity == null) {
+			return;
+		}
+		entity.setUrl(rewriteUrlHost(entity.getUrl(), urlHostRewriteFrom, urlHostRewriteTo));
+	}
+
+	/**
+	 * Pure string-replace helper backing {@link #rewriteApiUrlBeforeSave}, kept
+	 * static and package-visible so it can be unit-tested without a Spring
+	 * context.
+	 */
+	static String rewriteUrlHost(String url, String from, String to) {
+		if (StringUtils.isBlank(from) || StringUtils.isBlank(url)) {
+			return url;
+		}
+		return url.replace(from, StringUtils.defaultString(to));
 	}
 }
