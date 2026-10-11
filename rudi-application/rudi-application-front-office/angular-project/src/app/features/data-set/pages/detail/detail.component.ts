@@ -182,7 +182,8 @@ export class DetailComponent implements OnInit {
         for (const item of this.metadata.available_formats) {
             const objet: MediaFile = item as MediaFile;
             if (objet.file_type === FileTypes.TEXT_CSV ||
-                objet.file_type === FileTypes.VND_MS_EXCEL) {
+                objet.file_type === FileTypes.VND_MS_EXCEL ||
+                objet.file_type === FileTypes.VND_OPENXML_SPREADSHEET) {
                 this.mediaToDisplayTable = item;
                 return true;
             }
