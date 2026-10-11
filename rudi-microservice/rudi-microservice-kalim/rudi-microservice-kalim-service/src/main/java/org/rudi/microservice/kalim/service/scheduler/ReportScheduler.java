@@ -49,7 +49,7 @@ public class ReportScheduler {
 				}
 			}
 		} else {
-			log.info("TreatmentScheduler nothing to do.");
+			log.info("ReportScheduler nothing to do.");
 		}
 
 		log.info("ReportScheduler done.");
