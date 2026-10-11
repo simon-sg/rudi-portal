@@ -222,7 +222,8 @@ export class DetailComponent implements OnInit {
     private buildTableMediaCandidates(metadata: Metadata): void {
         this.tableMediaCandidates = metadata.available_formats.filter((item: Media) => {
             const objet: MediaFile = item as MediaFile;
-            return objet.file_type === FileTypes.TEXT_CSV || objet.file_type === FileTypes.VND_MS_EXCEL;
+            return objet.file_type === FileTypes.TEXT_CSV || objet.file_type === FileTypes.VND_MS_EXCEL
+                || objet.file_type === FileTypes.VND_OPENXML_SPREADSHEET;
         }) as MediaFile[];
         this.mediaToDisplayTable = this.tableMediaCandidates[0];
     }
