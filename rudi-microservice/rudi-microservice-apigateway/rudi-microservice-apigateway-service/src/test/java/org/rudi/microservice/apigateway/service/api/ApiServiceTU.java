@@ -29,6 +29,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import lombok.RequiredArgsConstructor;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -258,5 +260,41 @@ class ApiServiceTU {
 	void deleteApiError() {
 		assertThatThrownBy(() -> apiService.deleteApi(UUID.randomUUID()))
 				.as("Une est exception est lancée").isInstanceOf(AppServiceException.class);
+	}
+
+	@Test
+	@DisplayName("La réécriture d'hôte est désactivée par défaut : l'URL persistée est inchangée")
+	void rewriteUrlWithoutConfig() throws IOException, AppServiceException {
+		final String originalUrl = "http://localhost:4031/storage";
+		final Api apiToCreate = jsonResourceReader.read(JSON_UUID_NULL, Api.class);
+		apiToCreate.setUrl(originalUrl);
+
+		final Api apiCreated = apiService.createApi(apiToCreate);
+
+		assertThat(apiCreated.getUrl())
+				.as("Sans configuration, l'URL persistée doit être strictement identique à celle en entrée")
+				.isEqualTo(originalUrl);
+	}
+
+	@Test
+	@DisplayName("La réécriture d'hôte réécrit l'URL persistée à la création et à la mise à jour")
+	void rewriteUrlWithConfig() throws IOException, AppServiceException {
+		final Object target = AopTestUtils.getTargetObject(apiService);
+		ReflectionTestUtils.setField(target, "urlHostRewriteFrom", "localhost:4031");
+		ReflectionTestUtils.setField(target, "urlHostRewriteTo", "host.docker.internal:4031");
+
+		final Api apiToCreate = jsonResourceReader.read(JSON_UUID_NULL, Api.class);
+		apiToCreate.setUrl("http://localhost:4031/storage");
+
+		final Api apiCreated = apiService.createApi(apiToCreate);
+		assertThat(apiCreated.getUrl())
+				.as("À la création, l'URL persistée doit avoir été réécrite")
+				.isEqualTo("http://host.docker.internal:4031/storage");
+
+		apiCreated.setUrl("http://localhost:4031/other");
+		final Api apiUpdated = apiService.updateApi(apiCreated);
+		assertThat(apiUpdated.getUrl())
+				.as("À la mise à jour, l'URL persistée doit avoir été réécrite")
+				.isEqualTo("http://host.docker.internal:4031/other");
 	}
 }
