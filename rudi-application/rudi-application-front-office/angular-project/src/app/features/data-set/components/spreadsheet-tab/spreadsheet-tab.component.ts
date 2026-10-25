@@ -134,7 +134,10 @@ export class SpreadsheetTabComponent implements OnInit {
             switchMap((hasAccess: boolean) => {
                 if (hasAccess) {
                     this.errorAccess = false;
-                    return this.displayTableService.downloadTableFile(media.connector.url).pipe(
+                    // Fix backlog #2 : préférer l'encodage déclaré par le producteur
+                    // (MediaFile.file_encoding) à l'heuristique UTF-8-strict/Latin-1.
+                    const fileEncoding = (media as MediaFile)?.file_encoding;
+                    return this.displayTableService.downloadTableFile(media.connector.url, fileEncoding).pipe(
                         catchError((error) => {
                             // Cas erreur avec un message à afficher côté front
                             if (error instanceof ErrorWithCause && error.code != null) {
