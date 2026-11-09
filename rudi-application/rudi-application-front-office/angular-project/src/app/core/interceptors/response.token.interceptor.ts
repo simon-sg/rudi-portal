@@ -106,7 +106,24 @@ export const ResponseTokenInterceptor: HttpInterceptorFn = (request, next) => {
     type HttpRequestAny = HttpRequest<any>;
 
     /**
-     * Clone la requête HTTP et y ajoute les headers d'authentification nécessaires.
+     * Indique si une URL cible le backend RUDI (même origine que le front) plutôt
+     * qu'un domaine tiers (ex. média FILE hybride dont l'URL reste hébergée chez la
+     * source externe). Une URL relative est toujours considérée comme interne.
+     */
+    function cibleBackendRudi(url: string): boolean {
+        try {
+            return new URL(url, window.location.origin).origin === window.location.origin;
+        } catch {
+            return true;
+        }
+    }
+
+    /**
+     * Clone la requête HTTP et y ajoute les headers d'authentification nécessaires —
+     * jamais vers un domaine tiers : le JWT de session ne doit pas y fuiter, et une
+     * requête avec credentials échoue de toute façon côté navigateur face à un
+     * Access-Control-Allow-Origin "*" (cas réel : CSV d'un média FILE hybride hébergé
+     * sur data.education.gouv.fr/odre.opendatasoft.com, qui renvoie ce header générique).
      *
      * Headers injectés : token JWT, credentials, etc.
      *
@@ -114,6 +131,9 @@ export const ResponseTokenInterceptor: HttpInterceptorFn = (request, next) => {
      * @returns Observable de la réponse HTTP
      */
     function injectHeadersAndCloneRequest(request: HttpRequestAny): Observable<HttpEventAny> {
+        if (!cibleBackendRudi(request.url)) {
+            return next(request);
+        }
         return next(
             request.clone({
                 setHeaders: authenticationService.getHeadersForRequestInjection(),
