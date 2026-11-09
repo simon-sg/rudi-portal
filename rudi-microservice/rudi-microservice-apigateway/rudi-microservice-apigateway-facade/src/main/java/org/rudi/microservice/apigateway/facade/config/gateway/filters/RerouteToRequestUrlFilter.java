@@ -108,12 +108,29 @@ public class RerouteToRequestUrlFilter extends AbstractGlobalFilter implements G
 	protected String prepareRawQuery(URI routeUri) {
 		String oQuery = routeUri.getRawQuery();
 		if (StringUtils.isNotEmpty(oQuery)) {
-			try {
-				return URLDecoder.decode(oQuery.replace("+", "%2B"), "UTF-8").replace("%2B", "+");
-			} catch (Exception e) {
-				log.warn("Failed to decode uri " + oQuery, e);
-				return oQuery;
+			// routeUri provient de route.getUri() : pour une route déclarée avec une query déjà
+			// percent-encodée (média FILE hybride, ex. OpenDataSoft where=code_commune%3D%2735210%27),
+			// cette query arrive ici encodée une fois de trop (confirmé en conditions réelles :
+			// routeUri.getRawQuery() vaut alors ...%253D%2527..., alors que l'Api.url stockée en base
+			// ne l'est qu'une fois - mécanisme exact non identifié côté Spring Cloud Gateway, mais le
+			// nombre de niveaux d'encodage n'est jamais garanti côté appelant). Décoder en boucle
+			// jusqu'à stabilisation absorbe ce niveau d'encodage en trop, qu'il y en ait zéro, un ou
+			// plusieurs, sans rien changer pour le cas normal (un seul passage, déjà idempotent).
+			String current = oQuery;
+			for (int i = 0; i < 5; i++) {
+				String decoded;
+				try {
+					decoded = URLDecoder.decode(current.replace("+", "%2B"), "UTF-8").replace("%2B", "+");
+				} catch (Exception e) {
+					log.warn("Failed to decode uri " + current, e);
+					return current;
+				}
+				if (decoded.equals(current)) {
+					break;
+				}
+				current = decoded;
 			}
+			return current;
 		}
 		return StringUtils.EMPTY;
 	}
