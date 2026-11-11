@@ -430,6 +430,19 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
             this.centeredExtent = this.boundingBox.getGeometry();
             this.polygonSource.addFeature(this.boundingBox);
         }
+        // Si ni centeredGeometry ni boundingBox n'ont été fournis en Input mais que metadata l'a
+        // été (cas de MapTabComponent, qui ne passe aujourd'hui que metadata/mediaLayers), centrer
+        // sur la géographie déclarée du JDD (même source que data-set-infos.component.ts, via
+        // DisplayMapService) sans dessiner de feature supplémentaire sur la carte — à la
+        // différence du cas boundingBox explicite ci-dessus.
+        else if (this.metadata != null) {
+            const derivedBoundingBox = this.displayMapService.getMetadataBoundingBox(this.metadata, DEFAULT_VIEW_PROJECTION);
+            if (derivedBoundingBox != null) {
+                this.centeredExtent = derivedBoundingBox.getGeometry();
+            } else {
+                this.centeredExtent = this.displayMapService.getMetadataGeolocation(this.metadata, DEFAULT_VIEW_PROJECTION);
+            }
+        }
 
         // Centrage si succès des données fournies
         if (this.centeredExtent) {
@@ -442,7 +455,11 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
         this.handleMapEvents();
         this.addFeatureInteraction();
 
-        if (this.initExtent != null) {
+        // Fix carte centrage auto : ce fit() s'exécutait AVANT inconditionnellement, même après
+        // un centrage réussi sur centeredGeometry/boundingBox (handleClickCentrage() plus haut) —
+        // initExtent est toujours renseigné (calculé en synchrone dans ngAfterViewInit avant
+        // l'appel à initMap()), donc ce fit() écrasait systématiquement tout centrage précédent.
+        if (this.initExtent != null && this.centeredExtent == null) {
             this.map.getView().fit(this.initExtent);
         }
     }
