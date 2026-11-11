@@ -415,6 +415,11 @@ export class MapComponent implements AfterViewInit, OnInit, OnChanges {
             ]
         });
 
+        // Fix backlog #3 : la taille DOM du conteneur à la construction peut être 0/périmée ;
+        // sans ce updateSize() avant les fit() ci-dessous (handleClickCentrage() et le fit sur
+        // initExtent en fin de méthode), la vue se place hors des points réels.
+        this.map.updateSize();
+
         // Si on a donné une feature à afficher alors on l'affiche
         if (this.centeredGeometry != null) {
             this.centeredExtent = this.centeredGeometry.getExtent();
